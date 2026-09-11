@@ -253,4 +253,28 @@ describe("Streamer reconnects an active capture", () => {
       }),
     ]);
   });
+
+  it("forwards final disposition metadata to the dictation controller", () => {
+    const onFinal = vi.fn();
+    streamer = new Streamer("http://localhost:3000", "", {
+      onConfig: vi.fn(),
+      onReady: vi.fn(),
+      onFinal,
+      onError: vi.fn(),
+    });
+
+    const socket = FakeWebSocket.instances[0];
+    socket.message({
+      type: "final",
+      text: "",
+      disposition: "empty",
+      reason: "no_speech_detected",
+    });
+
+    expect(onFinal).toHaveBeenCalledWith(
+      "",
+      "empty",
+      "no_speech_detected",
+    );
+  });
 });

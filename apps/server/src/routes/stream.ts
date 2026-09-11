@@ -209,6 +209,15 @@ const stream = new Hono().get(
       if (hadCommit) ws.send(JSON.stringify({ type: "final", text: "" }));
     }
 
+    function sendFinal(
+      ws: { send: (data: string) => void },
+      text: string,
+      meta?: { disposition?: "empty" | "suppressed"; reason?: string },
+    ): void {
+      if (closed) return;
+      ws.send(JSON.stringify({ type: "final", text, ...meta }));
+    }
+
     function startUpstream(
       ws: {
         send: (data: string) => void;
@@ -437,9 +446,10 @@ const stream = new Hono().get(
               // paste nothing. The post-process-off branch below has its own
               // empty guard after afterTranscribe.
               if (cloudHandledPostProcess && !cloudText) {
-                if (!closed) {
-                  ws.send(JSON.stringify({ type: "final", text: "" }));
-                }
+                sendFinal(ws, "", {
+                  disposition: "empty",
+                  reason: "no_speech_detected",
+                });
                 return;
               }
 
@@ -467,9 +477,15 @@ const stream = new Hono().get(
                 // A plugin may suppress the transcript explicitly via
                 // consume()/abort() or implicitly by emptying the text.
                 if (api.control.state !== "running" || !text.trim()) {
-                  if (!closed) {
-                    ws.send(JSON.stringify({ type: "final", text: "" }));
-                  }
+                  sendFinal(ws, "", {
+                    disposition:
+                      api.control.state !== "running"
+                        ? "suppressed"
+                        : "empty",
+                    ...(api.control.reason
+                      ? { reason: api.control.reason }
+                      : { reason: "no_speech_detected" }),
+                  });
                   return;
                 }
               }
@@ -530,9 +546,23 @@ const stream = new Hono().get(
                   has_app_context: !!streamCtx,
                 });
               }
-              if (!closed) {
-                ws.send(JSON.stringify({ type: "final", text: finalText }));
-              }
+              sendFinal(
+                ws,
+                finalText,
+                suppressed
+                  ? {
+                      disposition: "suppressed",
+                      ...(api.control.reason
+                        ? { reason: api.control.reason }
+                        : {}),
+                    }
+                  : !finalText.trim()
+                    ? {
+                        disposition: "empty",
+                        reason: "no_speech_detected",
+                      }
+                    : undefined,
+              );
               if (!suppressed) {
                 const historyRawText = upstreamRaw || cloudText;
                 try {
@@ -576,7 +606,13 @@ const stream = new Hono().get(
             // A plugin may suppress the dictation explicitly (consume/abort) or
             // implicitly by emptying the transcript — either skips cleanup.
             if (api.control.state !== "running" || !rawText?.trim()) {
-              ws.send(JSON.stringify({ type: "final", text: "" }));
+              sendFinal(ws, "", {
+                disposition:
+                  api.control.state !== "running" ? "suppressed" : "empty",
+                ...(api.control.reason
+                  ? { reason: api.control.reason }
+                  : { reason: "no_speech_detected" }),
+              });
               return;
             }
 
@@ -650,9 +686,23 @@ const stream = new Hono().get(
                   });
                 }
                 const deliverText = suppressed ? "" : pp.cleaned;
-                if (!closed) {
-                  ws.send(JSON.stringify({ type: "final", text: deliverText }));
-                }
+                sendFinal(
+                  ws,
+                  deliverText,
+                  suppressed
+                    ? {
+                        disposition: "suppressed",
+                        ...(api.control.reason
+                          ? { reason: api.control.reason }
+                          : {}),
+                      }
+                    : !deliverText.trim()
+                      ? {
+                          disposition: "empty",
+                          reason: "no_speech_detected",
+                        }
+                      : undefined,
+                );
                 if (!suppressed) {
                   try {
                     saveProcessedHistory({
@@ -911,7 +961,10 @@ const stream = new Hono().get(
             } else if (upstream || sessionStarting) {
               pendingCommit = true;
             } else {
-              ws.send(JSON.stringify({ type: "final", text: "" }));
+              sendFinal(ws, "", {
+                disposition: "empty",
+                reason: "no_speech_detected",
+              });
             }
             break;
           case "cancel":

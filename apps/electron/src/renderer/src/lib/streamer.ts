@@ -25,7 +25,11 @@ export type StreamerConnectionState =
   | "disconnected";
 
 export interface StreamerCallbacks {
-  onFinal: (text: string) => void;
+  onFinal: (
+    text: string,
+    disposition?: "empty" | "suppressed",
+    reason?: string,
+  ) => void;
   onError: (message: string, code?: string) => void;
   onReady: () => void;
   /** Live partial transcript. Only the remix card consumes this today. */
@@ -343,6 +347,8 @@ export class Streamer {
       let msg: {
         type: string;
         text?: string;
+        disposition?: "empty" | "suppressed";
+        reason?: string;
         message?: string;
         code?: string;
         model?: string;
@@ -384,7 +390,7 @@ export class Streamer {
           this.callbacks.onPartial?.(msg.text ?? "");
           break;
         case "final":
-          this.callbacks.onFinal(msg.text ?? "");
+          this.callbacks.onFinal(msg.text ?? "", msg.disposition, msg.reason);
           break;
         case "error":
           this.callbacks.onError(msg.message ?? "Unknown error", msg.code);

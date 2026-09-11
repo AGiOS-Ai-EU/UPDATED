@@ -140,9 +140,20 @@ export class DictationController {
     if (this.streamer) return this.streamer;
     this.streamer = new Streamer(getApiBase(), getServerToken(), {
       onPartial: (text) => this.callbacks.onPartial(text),
-      onFinal: (text) => {
+      onFinal: (text, disposition, reason) => {
         if (!this.settleFinal()) return;
         if (!this.active) this.setPhase("idle");
+        if (disposition === "empty") {
+          this.callbacks.onError(
+            describeError(
+              reason || "No speech detected — try again",
+              reason || "no_speech_detected",
+            ),
+            reason || "no_speech_detected",
+          );
+          return;
+        }
+        if (disposition === "suppressed") return;
         this.enqueue(text);
       },
       onError: (message, code) => {

@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type StreamerCallbacks = {
-  onFinal: (text: string) => void;
+  onFinal: (
+    text: string,
+    disposition?: "empty" | "suppressed",
+    reason?: string,
+  ) => void;
   onError: (message: string) => void;
 };
 
@@ -228,5 +232,21 @@ describe("DictationController", () => {
     expect(composer).toEqual(["streamed text"]);
     expect(errors).toEqual([]);
     expect(apiFetch).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a recoverable error for an empty streamed final", async () => {
+    const { controller, composer, errors, phases } = makeController();
+    await flush();
+    void controller.start();
+    await flush();
+    state.acquire?.resolve({});
+    await flush();
+    controller.stop();
+    state.streamerCallbacks?.onFinal("", "empty", "no_speech_detected");
+    await flush();
+
+    expect(composer).toEqual([]);
+    expect(errors).toEqual(["No speech detected — try again"]);
+    expect(phases.at(-1)).toBe("idle");
   });
 });
