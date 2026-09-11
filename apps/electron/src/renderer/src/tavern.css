@@ -368,10 +368,11 @@
 
 .tavern-soft-auth {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 10px;
-  align-items: stretch;
-  padding: 12px 14px;
+  align-items: center;
+  padding: 9px 12px;
   margin: 0 0 12px;
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--updated-accent-strong, #b87333) 35%, transparent);
@@ -383,12 +384,19 @@
   font-size: 12px;
   line-height: 1.45;
   color: var(--tavern-ink);
+  flex: 1;
 }
 
 .tavern-soft-auth .tavern-gate-btn {
-  max-width: none;
-  height: 40px;
-  font-size: 13px;
+  max-width: 190px;
+  height: 34px;
+  padding: 0 14px;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.tavern-soft-auth .tavern-notice {
+  flex-basis: 100%;
 }
 
 .tavern-soft-auth-code {
@@ -1584,6 +1592,37 @@
 .tavern-close:focus-visible {
   outline: 2px solid var(--tavern-lantern);
   outline-offset: 2px;
+}
+
+.tavern-window-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.tavern-window-control {
+  width: 32px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--tavern-mute);
+  font: 600 16px/1 var(--updated-font-ui, system-ui, sans-serif);
+  cursor: pointer;
+}
+
+.tavern-window-control:hover {
+  background: var(--tavern-wash);
+  color: var(--tavern-ink);
+}
+
+.tavern-close.tavern-window-control:hover {
+  background: #b7483a;
+  color: #fff;
 }
 
 .tavern-tree {

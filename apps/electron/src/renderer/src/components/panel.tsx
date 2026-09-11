@@ -1300,14 +1300,35 @@ function PanelInner({
             >
               ＋ New
             </button>
-            <button
-              type="button"
-              className="tavern-close"
-              aria-label="Close"
-              onClick={() => window.api.panelClose()}
-            >
-              ×
-            </button>
+            <div className="tavern-window-controls">
+              <button
+                type="button"
+                className="tavern-window-control"
+                aria-label="Minimize"
+                title="Minimize"
+                onClick={() => window.api.panelMinimize()}
+              >
+                <span aria-hidden="true">−</span>
+              </button>
+              <button
+                type="button"
+                className="tavern-window-control"
+                aria-label="Maximize or restore"
+                title="Maximize or restore"
+                onClick={() => window.api.panelToggleMaximize()}
+              >
+                <span aria-hidden="true">□</span>
+              </button>
+              <button
+                type="button"
+                className="tavern-close tavern-window-control"
+                aria-label="Close"
+                title="Close"
+                onClick={() => window.api.panelClose()}
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           <div

@@ -31,17 +31,27 @@ const agicyAuth = new Hono()
     });
   })
   .post("/device/code", async (c) => {
-    const code = await requestAgicyDeviceCode();
-    return c.json({
-      device_code: code.device_code,
-      user_code: code.user_code,
-      verification_uri: code.verification_url,
-      verification_uri_complete: code.verification_url.includes("user_code=")
-        ? code.verification_url
-        : `${code.verification_url}${code.verification_url.includes("?") ? "&" : "?"}user_code=${encodeURIComponent(code.user_code)}`,
-      expires_in: code.expires_in,
-      interval: code.interval,
-    });
+    try {
+      const code = await requestAgicyDeviceCode();
+      return c.json({
+        device_code: code.device_code,
+        user_code: code.user_code,
+        verification_uri: code.verification_url,
+        verification_uri_complete: code.verification_url.includes("user_code=")
+          ? code.verification_url
+          : `${code.verification_url}${code.verification_url.includes("?") ? "&" : "?"}user_code=${encodeURIComponent(code.user_code)}`,
+        expires_in: code.expires_in,
+        interval: code.interval,
+      });
+    } catch {
+      return c.json(
+        {
+          error:
+            "AGICY cloud sign-in is temporarily unavailable. You can keep using search and local voice, then retry sign-in later.",
+        },
+        503,
+      );
+    }
   })
   .post("/device/token", zValidator("json", deviceTokenSchema), async (c) => {
     const { device_code } = c.req.valid("json");

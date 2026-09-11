@@ -3663,6 +3663,21 @@ ipcMain.on("panel:close", (event) => {
   closePanel();
 });
 
+ipcMain.on("panel:minimize", (event) => {
+  if (event.sender !== panelWindow?.webContents) return;
+  panelTransient = false;
+  panelWindow?.minimize();
+});
+
+ipcMain.on("panel:toggle-maximize", (event) => {
+  if (event.sender !== panelWindow?.webContents) return;
+  const win = panelWindow;
+  if (!win || win.isDestroyed()) return;
+  panelTransient = false;
+  if (win.isMaximized()) win.unmaximize();
+  else win.maximize();
+});
+
 ipcMain.on("panel:pointer-left", (event) => {
   if (event.sender !== panelWindow?.webContents) return;
   if (panelResizing) return;
@@ -3733,6 +3748,8 @@ let panelWindow: BrowserWindow | null = null;
 let panelHideTimer: NodeJS.Timeout | null = null;
 let panelBusy = false;
 let panelResizing = false;
+let panelTransient = false;
+let panelBoundsSaveTimer: NodeJS.Timeout | null = null;
 const panelRendererMessages = new PanelRendererMessageQueue((message) => {
   const win = panelWindow;
   if (!win || win.isDestroyed()) return;
@@ -3764,6 +3781,57 @@ function storedPanelWidth(): number {
     : PANEL_WIDTH;
 }
 
+type PersistedPanelBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+function storedPanelBounds(): PersistedPanelBounds | null {
+  const raw = readSettings()
+    .panelBounds as Partial<PersistedPanelBounds> | null;
+  if (!raw || ![raw.x, raw.y, raw.width, raw.height].every(Number.isFinite)) {
+    return null;
+  }
+  const candidate = raw as PersistedPanelBounds;
+  const display = screen.getDisplayMatching(candidate);
+  const work = display.workArea;
+  const width = Math.min(
+    work.width,
+    Math.max(PANEL_MIN_WIDTH, Math.round(candidate.width)),
+  );
+  const height = Math.min(
+    work.height,
+    Math.max(480, Math.round(candidate.height)),
+  );
+  return {
+    x: Math.min(
+      work.x + work.width - width,
+      Math.max(work.x, Math.round(candidate.x)),
+    ),
+    y: Math.min(
+      work.y + work.height - height,
+      Math.max(work.y, Math.round(candidate.y)),
+    ),
+    width,
+    height,
+  };
+}
+
+function savePanelBoundsSoon(): void {
+  if (panelBoundsSaveTimer) clearTimeout(panelBoundsSaveTimer);
+  panelBoundsSaveTimer = setTimeout(() => {
+    panelBoundsSaveTimer = null;
+    const win = panelWindow;
+    if (!win || win.isDestroyed() || win.isMaximized() || win.isMinimized()) {
+      return;
+    }
+    const bounds = win.getBounds();
+    writeSettings({ panelBounds: bounds, panelWidth: bounds.width });
+  }, 180);
+}
+
 function panelPosition(display: Display): {
   x: number;
   y: number;
@@ -3782,15 +3850,11 @@ function panelPosition(display: Display): {
   return { x, y, width: panelWidth, height: panelHeight };
 }
 
-// The panel is created non-resizable, which on some platforms also pins its
-// size against setBounds. Lift the constraint just for the call.
 function setPanelBounds(
   win: BrowserWindow,
   bounds: { x: number; y: number; width: number; height: number },
 ): void {
-  win.setResizable(true);
   win.setBounds(bounds);
-  win.setResizable(false);
 }
 
 function positionPanelOnDisplay(display: Display): void {
@@ -3802,7 +3866,7 @@ function positionPanelOnDisplay(display: Display): void {
 function createPanelWindow(): void {
   if (panelWindow && !panelWindow.isDestroyed()) return;
   const display = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  const { x, y, width, height } = panelPosition(display);
+  const { x, y, width, height } = storedPanelBounds() ?? panelPosition(display);
 
   panelWindow = new BrowserWindow({
     width,
@@ -3811,14 +3875,17 @@ function createPanelWindow(): void {
     y,
     show: false,
     frame: false,
-    transparent: true,
-    resizable: false,
+    transparent: false,
+    backgroundColor: "#f4f0e8",
+    resizable: true,
+    minimizable: true,
+    maximizable: true,
+    fullscreenable: true,
     hasShadow: process.platform !== "linux",
-    alwaysOnTop: true,
-    skipTaskbar: true,
+    alwaysOnTop: false,
+    skipTaskbar: false,
     autoHideMenuBar: true,
     focusable: true,
-    ...(process.platform === "darwin" ? { type: "panel" as const } : {}),
     ...(process.platform === "linux" ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
@@ -3826,14 +3893,22 @@ function createPanelWindow(): void {
       backgroundThrottling: false,
     },
   });
+  panelWindow.setMinimumSize(PANEL_MIN_WIDTH, 480);
   panelRendererMessages.reset();
 
-  panelWindow.setAlwaysOnTop(true, "screen-saver");
-  panelWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   panelWindow.on("closed", () => {
+    if (panelBoundsSaveTimer) clearTimeout(panelBoundsSaveTimer);
+    panelBoundsSaveTimer = null;
     panelWindow = null;
     panelResizing = false;
+    panelTransient = false;
     panelRendererMessages.reset();
+  });
+  panelWindow.on("move", savePanelBoundsSoon);
+  panelWindow.on("resize", savePanelBoundsSoon);
+  panelWindow.on("focus", () => {
+    panelTransient = false;
+    cancelPanelHide();
   });
   panelWindow.webContents.on(
     "did-start-navigation",
@@ -3882,6 +3957,11 @@ function openPanel(
   createPanelWindow();
   const win = panelWindow;
   if (!win || win.isDestroyed()) return;
+  if (!wasVisible) {
+    panelTransient = opts.trigger === "hover" && !opts.focusComposer;
+  } else if (opts.trigger !== "hover" || opts.focusComposer) {
+    panelTransient = false;
+  }
   // Only a genuine hidden -> visible transition is an open; re-entry while
   // already showing (hover re-fires, focus requests) is not.
   if (!wasVisible) {
@@ -3898,13 +3978,15 @@ function openPanel(
     : cursorDisplay;
   const { panelDisplay, companionDisplay } =
     resolvePanelCompanionDisplays(targetDisplay);
-  positionPanelOnDisplay(panelDisplay);
+  if (!wasVisible && !storedPanelBounds()) positionPanelOnDisplay(panelDisplay);
   positionCompanionOnDisplay(companionDisplay);
   if (opts.focusComposer) {
+    if (win.isMinimized()) win.restore();
     win.show();
     win.focus();
     panelRendererMessages.send({ channel: "panel:focus-composer" });
   } else {
+    if (win.isMinimized()) win.restore();
     win.showInactive();
   }
   updateWidgetEscape();
@@ -3931,6 +4013,7 @@ function cursorWithin(win: BrowserWindow | null, pad = 0): boolean {
 
 function schedulePanelHide(): void {
   cancelPanelHide();
+  if (!panelTransient) return;
   panelHideTimer = setTimeout(() => {
     panelHideTimer = null;
     const win = panelWindow;

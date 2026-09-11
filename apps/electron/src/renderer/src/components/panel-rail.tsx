@@ -7,8 +7,9 @@ const RAIL_PRIMARY: {
   label: string;
   isSettings?: boolean;
 }[] = [
-  { id: "chat", label: "Chat" },
-  { id: "search", label: "Search" },
+  { id: "chat", label: "Ask UPDATED" },
+  { id: "search", label: "Web search" },
+  { id: "apps", label: "Agents & apps" },
   { id: "history", label: "History" },
   { id: "settings", label: "Settings", isSettings: true },
 ];
@@ -16,8 +17,7 @@ const RAIL_PRIMARY: {
 const RAIL_OVERFLOW: { id: PanelTab; label: string }[] = [
   { id: "todos", label: "Todos" },
   { id: "notes", label: "Notes" },
-  { id: "brain", label: "Brain" },
-  { id: "apps", label: "Apps" },
+  { id: "brain", label: "Knowledge" },
 ];
 
 function RailIcon({
@@ -45,6 +45,14 @@ function RailIcon({
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="8" />
           <path d="M12 7v5l3 2" />
+        </svg>
+      );
+    case "apps":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="8" cy="8" r="3" />
+          <circle cx="17" cy="7" r="2" />
+          <path d="M3 19c.5-3.5 2.2-5 5-5s4.5 1.5 5 5M14 13c3.5-.7 5.8 1 6.5 4" />
         </svg>
       );
     case "settings":
@@ -119,6 +127,7 @@ export function PanelRail({
             }}
           >
             <RailIcon name={item.isSettings ? "settings" : item.id} />
+            <span className="updated-glass-rail-label">{item.label}</span>
           </button>
         );
       })}

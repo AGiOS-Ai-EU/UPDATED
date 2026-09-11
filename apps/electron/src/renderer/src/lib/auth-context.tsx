@@ -169,8 +169,15 @@ function useCloudAuthState(): UseCloudAuth {
         );
       }
       const codeRes = await getClient().api.auth.agicy.device.code.$post();
-      if (!codeRes.ok)
-        throw new Error(`Could not start sign-in (${codeRes.status})`);
+      if (!codeRes.ok) {
+        const body = (await codeRes.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(
+          body?.error ??
+            `AGICY cloud sign-in is unavailable (${codeRes.status}). You can keep working locally and retry later.`,
+        );
+      }
       const code = await codeRes.json();
       setUserCode(code.user_code);
       const opened = await window.api.openExternal(

@@ -107,6 +107,8 @@ declare global {
       ) => () => void;
       reloadDictationPrefs: () => void;
       panelClose: () => void;
+      panelMinimize: () => void;
+      panelToggleMaximize: () => void;
       panelResizeWidth: (width: number) => void;
       panelCommitWidth: () => void;
       panelSetBusy: (busy: boolean) => void;

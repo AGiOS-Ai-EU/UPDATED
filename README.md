@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    alt="UPDATED — voice and sourced evidence"
+    alt="UPDATED by AGICY.Ai"
     src="docs/assets/updated-mark.png"
     width="112"
   />
@@ -8,24 +8,26 @@
 
 <p align="center">
   <img
-    alt="UPDATED in three steps: download and install, hold the platform hotkey and speak, then read sourced results"
-    src="docs/assets/updated-launch-123.png"
+    alt="UPDATED evidence-first desktop workspace"
+    src="docs/assets/updated-github-hero.png"
     width="960"
   />
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-64748B?style=flat-square" alt="MIT License" /></a>
-  <a href="https://github.com/AGiOS-Ai-EU/UPDATED/releases/tag/v0.9.0-beta.6"><img src="https://img.shields.io/badge/release-0.9.0--beta.6-C9894A?style=flat-square" alt="UPDATED 0.9.0 beta 6" /></a>
+  <a href="https://github.com/AGiOS-Ai-EU/UPDATED/releases"><img src="https://img.shields.io/badge/release-0.9.0--beta.8-C9894A?style=flat-square" alt="UPDATED 0.9.0 beta 8" /></a>
   <img src="https://img.shields.io/badge/supported-Windows%20beta-1A1A2E?style=flat-square" alt="Supported desktop: Windows beta" />
   <img src="https://img.shields.io/badge/shell-Electron-1A1A2E?style=flat-square" alt="Electron" />
 </p>
 
 # UPDATED
 
-**Hold a hotkey. Speak a question. Read the sources.**
+**Ask naturally. Search the web. See the evidence. Connect the right agent.**
 
-UPDATED is a voice-first desktop search instrument by AGICY.Ai. It turns a spoken or typed question into certificate-style result cards (one card per search citation plus a provider summary) with a primary-source rate and an explicit **CONTESTED** state when providers diverge. Cards format search snippets and titles — there is no LLM claim extraction in this beta.
+UPDATED is AGICY.Ai’s desktop intelligence workspace. It combines a fast conversational surface with sourced web search, voice input, local history and connected tools. Answers remain inspectable: sources are separated, provider disagreement is explicit, and external actions can require confirmation.
+
+The redesigned workspace is movable, resizable and minimizable. It replaces the old floating popover with labelled navigation for Ask UPDATED, Web search, History, Agents & apps and Knowledge, while keeping the quick companion available for capture.
 
 **Supported desktop for this beta is Windows.** That is the machine we install and test. macOS and Linux files on the GitHub release are CI artifacts, not a supported install path.
 
@@ -44,20 +46,20 @@ UPDATED is a voice-first desktop search instrument by AGICY.Ai. It turns a spoke
 
 ## Install the Windows beta
 
-Current public pre-release: **[UPDATED 0.9.0-beta.6](https://github.com/AGiOS-Ai-EU/UPDATED/releases/tag/v0.9.0-beta.6)**.
+Current redesign line: **UPDATED 0.9.0-beta.8**.
 
 Download the Windows installer from GitHub only:
 
-**[UPDATED-0.9.0-beta.6-setup.exe](https://github.com/AGiOS-Ai-EU/UPDATED/releases/download/v0.9.0-beta.6/UPDATED-0.9.0-beta.6-setup.exe)**
+Public binaries are published on the [UPDATED Releases page](https://github.com/AGiOS-Ai-EU/UPDATED/releases) when a release is cut.
 
-An `.msi` (`UPDATED-0.9.0-beta.6.msi`) is attached to the same release. Default Windows hotkey: **Right Alt**.
+The redesigned test package is unsigned. Native helper support depends on the compiler toolchain used to package the build; the Electron fallback remains available.
 
 > [!WARNING]
 > This beta installer is **unsigned** unless CI signing secrets were set for that run (see [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md)). **Windows SmartScreen** may warn on first open: **More info → Run anyway**. Verify the file comes from `AGiOS-Ai-EU/UPDATED` on GitHub.
 
 ### Windows
 
-1. Download `UPDATED-0.9.0-beta.6-setup.exe` from the release asset URL above.
+1. Download the current Windows asset from the GitHub Releases page above.
 2. If SmartScreen appears, choose **More info**, then **Run anyway**.
 3. Launch UPDATED and allow microphone access.
 
@@ -65,18 +67,18 @@ An `.msi` (`UPDATED-0.9.0-beta.6.msi`) is attached to the same release. Default 
 
 The GitHub pre-release also attaches macOS `.dmg` / `.zip` and Linux `.AppImage` / `.deb`. Those are **untested CI artifacts**. Do not treat them as a supported or smoke-tested product for this beta.
 
-## First run (0.9.0-beta.6)
+## First run (0.9.0-beta.8)
 
 1. **SmartScreen** — unsigned setup.exe; **More info → Run anyway** if Windows warns.
-2. Launch UPDATED. Allow microphone access. Hold **Right Alt** and speak.
+2. Launch UPDATED, allow microphone access, and open the workspace from the companion or summon shortcut.
 
 Sign in opens [agicy.ai/updated/my_device](https://agicy.ai/updated/my_device): the app shows a device code and opens `https://agicy.ai/updated/my_device?user_code=?`. Sign in with your AGICY email, confirm the code, approve the device.
 
 **Cost (say this before you install):** Voice uses **metered inference credits** on your AGICY account. New accounts receive a free allotment (see [agicy.ai/updated/usage](https://agicy.ai/updated/usage) after sign-in). Search itself is free; optional Brave Search uses **your** Brave key. The app is not “unlimited free cloud STT.”
 
-Until sign-in completes, the floating companion stays hidden. After sign-in the companion stays **off by default** (Settings → Widget). Prefer the instrument panel over the sprite for beta.
+Cloud sign-in is optional for local search and local workflows. If cloud sign-in is temporarily unavailable, the workspace stays usable and shows a retryable local-mode status instead of blocking the conversation.
 
-## How voice works in 0.9.0-beta.6 (canonical)
+## How voice works in 0.9.0-beta.8 (canonical)
 
 Full diagram: [docs/VOICE-DATA-FLOW.md](docs/VOICE-DATA-FLOW.md). Privacy notice draft: [PRIVACY.md](PRIVACY.md).
 
@@ -94,17 +96,17 @@ Mic → UPDATED app → https://agicy.ai/api/stt/transcribe → Deepgram EU → 
 | Divergence log | Append-only JSONL **locally** — Settings → Search → Reveal / Copy path |
 | Brave key | Optional; encrypted with Electron `safeStorage` |
 
-Without a Brave Search API key, mock providers demonstrate the CONTESTED interface locally.
+Without a Brave Search API key, the local search surface remains available for interface testing; live provider availability is shown in the workspace.
 
-**Not in this installer:** on-device (whisper.cpp) STT. That path is an open PR, not the default in 0.9.0-beta.6.
+On-device STT, a full Agent Room and conversational Maps control remain staged work rather than features of the current Windows test build.
 
 ## Shipping now vs next
 
-| In the **0.9.0-beta.6** Windows installer | Not in this installer (open work) |
 | --- | --- |
-| Windows voice-first search instrument; GitHub `setup.exe`; Sign in opens `https://agicy.ai/updated/my_device?user_code=?` | On-device whisper.cpp STT; telemetry opt-in / EU PostHog |
-| Unsigned Windows `setup.exe` (SmartScreen may warn) | Local whisper default / runtime — [UPDATED PR #11](https://github.com/AGiOS-Ai-EU/UPDATED/pull/11) |
-| Hosted Deepgram EU STT + inference credits (in the binary) | Telemetry **opt-in**, EU PostHog host, consent UX — [UPDATED PR #12](https://github.com/AGiOS-Ai-EU/UPDATED/pull/12) |
+| In the **0.9.0-beta.8** redesign line | Staged next |
+| Movable workspace shell, sourced search, voice input, local history and connected-app surface | Full Agent Room with visible specialist-agent progress |
+| Local-mode recovery when AGICY cloud sign-in is unavailable | Conversational Maps control and richer agent hand-off |
+| Unsigned Windows test installer (SmartScreen may warn) | Signed releases and native helper toolchains in CI |
 
 ## Third-party services and privacy
 
@@ -117,7 +119,7 @@ This beta is **not** local-first for voice. Audio leaves the device.
 | **Brave Search** (optional) | Live web search | Search query text + your API key (key stored encrypted locally) |
 | **PostHog US** (`us.i.posthog.com`) | Anonymous product analytics in this build | Usage events unless you turn telemetry off in settings (`telemetry_enabled`) |
 
-In **0.9.0-beta.6**, analytics default **on** for the packaged app (opt-out via settings), and the bundled host is **US** PostHog. EU hosting, default-off, and consent after first dictation are **not** in this installer.
+Analytics and cloud-service behaviour can vary by build configuration. Review the bundled privacy disclosure and Settings before enabling hosted voice or connected services.
 
 Controller: AGICY.Ai (EU). Draft product privacy: [PRIVACY.md](PRIVACY.md). Canonical web notice (when published): [agicy.ai/legal/privacy](https://agicy.ai/legal/privacy). Data-subject requests: privacy@agicy.ai.
 
@@ -148,7 +150,7 @@ Windows installer locally: `pnpm --filter @freestyle-voice/electron run build:wi
 - [`docs/CHANGES.md`](docs/CHANGES.md)
 - [`docs/CODE_SIGNING.md`](docs/CODE_SIGNING.md)
 
-**Not in this Windows beta:** on-device STT, signed installers by default, telemetry opt-in / EU PostHog, modifier-plus-hotkey mode switching (Settings / Search tab only today), a third live search provider, in-app divergence-log viewer, LLM claim extraction, single-window merge, search-result CSV export.
+The Windows beta is actively evolving. On-device STT, a full Agent Room, conversational Maps control, signed installers and additional connected workflows are staged work rather than promises of the current binary.
 
 ## License and credits
 

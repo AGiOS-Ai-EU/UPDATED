@@ -193,6 +193,8 @@ const api = {
   },
   reloadDictationPrefs: (): void => ipcRenderer.send("dictation:reload-prefs"),
   panelClose: (): void => ipcRenderer.send("panel:close"),
+  panelMinimize: (): void => ipcRenderer.send("panel:minimize"),
+  panelToggleMaximize: (): void => ipcRenderer.send("panel:toggle-maximize"),
   panelResizeWidth: (width: number): void =>
     ipcRenderer.send("panel:resize-width", width),
   panelCommitWidth: (): void => ipcRenderer.send("panel:commit-width"),
