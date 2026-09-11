@@ -7,6 +7,7 @@ import {
   editAgentFile,
   globAgentFiles,
   grepAgentFiles,
+  hasAgentOsCapability,
   readAgentFile,
   runAgentBash,
   writeAgentFile,
@@ -16,6 +17,7 @@ import { getDb } from "../lib/db.js";
 const anyPath = z.string().min(1).max(1_000);
 
 function isAgentOsEnabled(): boolean {
+  if (!hasAgentOsCapability()) return false;
   const row = getDb()
     .prepare("SELECT value FROM settings WHERE key = ?")
     .get(AGENT_OS_ENABLED_SETTING) as { value: string } | undefined;

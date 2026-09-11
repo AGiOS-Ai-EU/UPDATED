@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import createApp from "../src/index.js";
+import {
+  AGENT_OS_CAPABILITY_ENV,
+  AGENT_OS_ENABLED_SETTING,
+} from "../src/lib/agent-os.js";
 import { getDb } from "../src/lib/db.js";
 import {
   getHistoryRetentionDays,
@@ -124,6 +128,34 @@ describe("Settings", () => {
   it("PUT rejects missing value", async () => {
     const res = await json("/api/settings/bad", {}, "PUT");
     expect(res.status).toBeGreaterThanOrEqual(400);
+  });
+
+  it("blocks enabling host agent tools without the process capability flag", async () => {
+    const previousCapability = process.env[AGENT_OS_CAPABILITY_ENV];
+    delete process.env[AGENT_OS_CAPABILITY_ENV];
+    getDb()
+      .prepare("DELETE FROM settings WHERE key = ?")
+      .run(AGENT_OS_ENABLED_SETTING);
+
+    try {
+      const res = await json(
+        `/api/settings/${AGENT_OS_ENABLED_SETTING}`,
+        { value: "true" },
+        "PUT",
+      );
+      expect(res.status).toBe(403);
+
+      const row = getDb()
+        .prepare("SELECT value FROM settings WHERE key = ?")
+        .get(AGENT_OS_ENABLED_SETTING);
+      expect(row).toBeUndefined();
+    } finally {
+      if (previousCapability === undefined) {
+        delete process.env[AGENT_OS_CAPABILITY_ENV];
+      } else {
+        process.env[AGENT_OS_CAPABILITY_ENV] = previousCapability;
+      }
+    }
   });
 
   it("accepts valid tone preset settings", async () => {

@@ -213,6 +213,11 @@ export interface RunningServer {
   port: number;
 }
 
+export function isExternallyReachableHost(host: string): boolean {
+  const normalized = host.trim().toLowerCase();
+  return !new Set(["", "localhost", "127.0.0.1", "::1"]).has(normalized);
+}
+
 /**
  * Start the Freestyle HTTP server.
  *
@@ -226,6 +231,11 @@ export async function startServer(
   options: StartServerOptions = {},
 ): Promise<RunningServer> {
   const { port = 4649, host = "127.0.0.1", token } = options;
+  if (isExternallyReachableHost(host) && !token?.trim()) {
+    throw new Error(
+      `Refusing to bind ${host} without FREESTYLE_AUTH_TOKEN. Set a bearer token or bind to 127.0.0.1.`,
+    );
+  }
 
   // Configure bearer-token auth before the app is built so authMiddleware picks
   // it up. Empty/undefined keeps the server open (loopback Electron default).

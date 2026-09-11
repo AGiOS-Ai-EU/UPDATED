@@ -17,6 +17,11 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { getDb } from "../lib/db.js";
 import {
+  AGENT_OS_CAPABILITY_ENV,
+  AGENT_OS_ENABLED_SETTING,
+  hasAgentOsCapability,
+} from "../lib/agent-os.js";
+import {
   HISTORY_RETENTION_SETTING_KEY,
   purgeExpiredHistory,
 } from "../lib/history-store.js";
@@ -61,6 +66,19 @@ const settings = new Hono()
     const db = getDb();
     const key = c.req.param("key");
     const body = c.req.valid("json");
+
+    if (
+      key === AGENT_OS_ENABLED_SETTING &&
+      body.value === "true" &&
+      !hasAgentOsCapability()
+    ) {
+      return c.json(
+        {
+          error: `${AGENT_OS_ENABLED_SETTING} requires ${AGENT_OS_CAPABILITY_ENV}=1`,
+        },
+        403,
+      );
+    }
 
     // Key-specific validation for settings with constrained value shapes.
     if (key === "cleanup_intensity") {

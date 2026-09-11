@@ -24,6 +24,11 @@ const GREP_FILE_MAX_BYTES = 262_144;
 const SKIP_DIRS = new Set(["node_modules", ".git", ".Trash", "Library"]);
 
 export const AGENT_OS_ENABLED_SETTING = "agent_os_enabled";
+export const AGENT_OS_CAPABILITY_ENV = "UPDATED_AGENT_OS_CAPABILITY";
+
+export function hasAgentOsCapability(): boolean {
+  return process.env[AGENT_OS_CAPABILITY_ENV] === "1";
+}
 
 export function agentWorkspaceRoot(): string {
   const fromEnv = process.env.UPDATED_AGENT_WORKSPACE?.trim();
