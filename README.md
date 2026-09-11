@@ -9,7 +9,7 @@
 <p align="center">
   <img
     alt="UPDATED evidence-first desktop workspace"
-    src="docs/assets/updated-github-hero.png"
+    src="docs/assets/updated-brand-hero.svg"
     width="960"
   />
 </p>
@@ -28,6 +28,8 @@
 UPDATED is AGICY.Ai’s desktop intelligence workspace. It combines a fast conversational surface with sourced web search, voice input, local history and connected tools. Answers remain inspectable: sources are separated, provider disagreement is explicit, and external actions can require confirmation.
 
 The redesigned workspace is movable, resizable and minimizable. It replaces the old floating popover with labelled navigation for Ask UPDATED, Web search, History, Agents & apps and Knowledge, while keeping the quick companion available for capture.
+
+![UPDATED evidence-first agent workspace](docs/assets/updated-brand-hero.svg)
 
 **Supported desktop for this beta is Windows.** That is the machine we install and test. macOS and Linux files on the GitHub release are CI artifacts, not a supported install path.
 
