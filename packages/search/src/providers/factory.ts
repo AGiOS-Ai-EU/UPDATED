@@ -20,8 +20,9 @@ function isSingleProviderMode(options: SearchProviderOptions): boolean {
 
 /**
  * Return the active provider set for divergence-aware search.
- * Default dev path runs two mocks; live Brave runs alongside mock-alt unless
- * UPDATED_SEARCH_SINGLE=1.
+ * Mocks are allowed only in explicit mock mode or non-production dev mode.
+ * Live providers are never paired with mocks, because mock citations must not
+ * contribute to production corroboration or agreement states.
  */
 export function createSearchProviders(
   options: SearchProviderOptions = {},
@@ -37,16 +38,27 @@ export function createSearchProviders(
     process.env.UPDATED_BRAVE_SEARCH_API_KEY?.trim() ||
     "";
 
+  const mocksAllowed =
+    forceMock ||
+    (process.env.NODE_ENV !== "production" &&
+      process.env.FREESTYLE_ENV !== "production");
+
   if (isSingleProviderMode(options)) {
-    if (forceMock || !apiKey) return [new MockSearchProvider()];
+    if (!apiKey) return mocksAllowed ? [new MockSearchProvider()] : [];
     return [new BraveSearchProvider(apiKey)];
   }
 
-  if (forceMock || !apiKey) {
+  if (!apiKey) {
+    return mocksAllowed
+      ? [new MockSearchProvider(), new MockAltSearchProvider()]
+      : [];
+  }
+
+  if (forceMock) {
     return [new MockSearchProvider(), new MockAltSearchProvider()];
   }
 
-  return [new BraveSearchProvider(apiKey), new MockAltSearchProvider()];
+  return [new BraveSearchProvider(apiKey)];
 }
 
 /** Back-compat helper for callers that still expect one provider. */

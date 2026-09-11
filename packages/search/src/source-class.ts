@@ -16,6 +16,8 @@ const PRIMARY_EXACT = new Set([
   "gov.cy",
   "gov.au",
   "gov.ca",
+  "bankofengland.co.uk",
+  "fca.org.uk",
 ]);
 
 const PRIMARY_SUFFIXES = [
@@ -29,35 +31,6 @@ const PRIMARY_SUFFIXES = [
   ".gov.ca",
   ".europa.eu",
   "europa.eu",
-] as const;
-
-const PRIMARY_KEYWORDS = [
-  "registry",
-  "registrar",
-  "gazette",
-  "legislation",
-  "statute",
-  "statutes",
-  "court",
-  "courts",
-  "judiciary",
-  "regulator",
-  "regulatory",
-  "official",
-  "legislature",
-  "parliament",
-  "senate",
-  "assembly",
-  "ec.europa.eu",
-  "govinfo",
-  "federalregister",
-  "legislation.gov",
-  "eur-lex",
-  "gemi",
-  "companieshouse",
-  "sec.gov",
-  "fca.org",
-  "bankofengland",
 ] as const;
 
 const ENCYCLOPEDIC_DOMAINS = [
@@ -171,7 +144,7 @@ function isPrimaryHost(host: string): boolean {
   ) {
     return true;
   }
-  return hostIncludesAny(host, PRIMARY_KEYWORDS);
+  return false;
 }
 
 /**

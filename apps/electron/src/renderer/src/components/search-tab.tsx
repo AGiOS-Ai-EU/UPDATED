@@ -87,8 +87,13 @@ function SearchHistoryList({
                 {entry.query}
               </span>
               <span className="updated-search-history-meta">
-                {entry.contested ? "CONTESTED" : "agree"} · primary{" "}
-                {entry.primaryRateText} · {formatHistoryWhen(entry.searchedAt)}
+                {entry.contested
+                  ? "CONTESTED"
+                  : entry.providerCount > 1
+                    ? "agree"
+                    : "unassessed"}{" "}
+                · primary {entry.primaryRateText} ·{" "}
+                {formatHistoryWhen(entry.searchedAt)}
               </span>
             </button>
           </li>
@@ -246,7 +251,8 @@ export function SearchTab({
       ) : !loading && !state?.error ? (
         <p className="updated-search-status">
           Hold the hotkey in search mode to dictate a query, or type above.
-          Default dev search runs two mock providers to surface divergence.
+          Demo providers are available only in local development or explicit
+          mock mode.
         </p>
       ) : null}
     </div>

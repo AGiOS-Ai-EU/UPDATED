@@ -77,6 +77,10 @@ function DivergenceBanner({
     <section className="updated-search-divergence" aria-live="polite">
       {contested ? (
         <p className="updated-search-contested">CONTESTED</p>
+      ) : divergence.pairScores.length === 0 ? (
+        <p className="updated-search-agreement">
+          Corroboration unassessed
+        </p>
       ) : (
         <p className="updated-search-agreement">Providers agree</p>
       )}

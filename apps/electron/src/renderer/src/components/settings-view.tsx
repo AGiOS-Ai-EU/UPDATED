@@ -1198,8 +1198,8 @@ function SearchPage({
       <SectionLabel>Brave Search (BYOK)</SectionLabel>
       <p className="tavern-set-hint">
         Paste your own Brave Search API key for live web results. Keys stay in
-        encrypted OS storage — never in SQLite. Without a key, search uses the
-        built-in mock provider.
+        encrypted OS storage — never in SQLite. Without a key, production
+        search is unavailable; mock providers are for local demos only.
       </p>
       <InfoRow
         label="Key status"
@@ -1208,7 +1208,7 @@ function SearchPage({
             ? "…"
             : keyStatus.configured
               ? "Configured"
-              : "Not set (using mock)"
+              : "Not set"
         }
       />
       <div className="tavern-set-row is-static">

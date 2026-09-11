@@ -18,6 +18,10 @@ export async function runMultiProviderSearch(
   query: string,
   signal?: AbortSignal,
 ): Promise<MultiProviderSearchResult> {
+  if (providers.length === 0) {
+    throw new Error("No live search provider configured");
+  }
+
   const settled = await Promise.allSettled(
     providers.map(async (provider) => ({
       providerId: provider.id,

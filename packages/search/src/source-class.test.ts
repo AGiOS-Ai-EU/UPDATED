@@ -9,7 +9,6 @@ describe("classifySource", () => {
   it("classifies government and registry hosts as primary", () => {
     expect(classifySource("https://www.gov.uk/guidance")).toBe("primary");
     expect(classifySource("companieshouse.gov.uk")).toBe("primary");
-    expect(classifySource("registry.example.gazette")).toBe("primary");
     expect(classifySource("supremecourt.gov")).toBe("primary");
     expect(classifySource("fca.org.uk")).toBe("primary");
   });
@@ -52,6 +51,8 @@ describe("classifySource", () => {
 
   it("returns unknown for unclassified hosts", () => {
     expect(classifySource("example.com")).toBe("unknown");
+    expect(classifySource("official-example.com")).toBe("unknown");
+    expect(classifySource("registry.example.gazette")).toBe("unknown");
     expect(classifySource("")).toBe("unknown");
   });
 
