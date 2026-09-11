@@ -115,6 +115,8 @@ const api = {
     ipcRenderer.send("companion:product-visible", visible),
   panelOpenForDictation: (): void =>
     ipcRenderer.send("panel:open-for-dictation"),
+  panelTalkDown: (): void => ipcRenderer.send("panel:talk-down"),
+  panelTalkUp: (): void => ipcRenderer.send("panel:talk-up"),
   panelOpenForSearch: (query: string): void =>
     ipcRenderer.send("panel:open-for-search", query),
   panelDictationPartial: (text: string): void =>

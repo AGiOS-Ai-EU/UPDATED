@@ -55,6 +55,8 @@ declare global {
       onCompanionEnabled: (callback: (enabled: boolean) => void) => () => void;
       setCompanionProductVisible: (visible: boolean) => void;
       panelOpenForDictation: () => void;
+      panelTalkDown: () => void;
+      panelTalkUp: () => void;
       panelDictationPartial: (text: string) => void;
       panelDictationFinal: (text: string) => void;
       panelDictationError: (message: string) => void;

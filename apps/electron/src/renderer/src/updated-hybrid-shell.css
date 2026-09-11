@@ -187,12 +187,142 @@
 
 .updated-hybrid-shell .tavern-composer {
   flex-shrink: 0;
-  background: color-mix(in srgb, var(--updated-glass-bg-strong) 50%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 12px max(14px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  background: color-mix(in srgb, var(--updated-glass-bg-strong) 72%, transparent);
   border-top: var(--updated-hairline) solid var(--updated-glass-border);
   border-left: none;
   border-right: none;
   border-bottom: none;
   border-radius: 0;
+}
+
+.updated-hybrid-shell .tavern-composer-main {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--updated-glass-border) 90%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--updated-field) 92%, transparent);
+  box-shadow: 0 10px 28px rgb(8 14 26 / 12%);
+}
+
+.updated-hybrid-shell .tavern-composer-main:focus-within {
+  border-color: var(--updated-copper);
+  box-shadow: 0 0 0 3px rgb(190 139 76 / 16%), 0 10px 28px rgb(8 14 26 / 16%);
+}
+
+.updated-hybrid-shell .tavern-composer-icon,
+.updated-hybrid-shell .tavern-composer-tool,
+.updated-hybrid-shell .tavern-btn-send {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.updated-hybrid-shell .tavern-composer-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--updated-graphite);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.updated-hybrid-shell .tavern-composer-icon:hover,
+.updated-hybrid-shell .tavern-composer-icon:focus-visible {
+  color: var(--updated-ink);
+  border-color: var(--updated-rule);
+  background: var(--updated-wash);
+}
+
+.updated-hybrid-shell .tavern-composer .tavern-input {
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 4px;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.updated-hybrid-shell .tavern-composer .tavern-input:focus-visible {
+  border: 0;
+  box-shadow: none;
+}
+
+.updated-hybrid-shell .tavern-composer .tavern-btn-send {
+  flex: none;
+  border-radius: 14px;
+  font-size: 19px;
+  box-shadow: 0 4px 12px rgb(8 14 26 / 18%);
+}
+
+.updated-hybrid-shell .tavern-composer-tools {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 0 2px;
+}
+
+.updated-hybrid-shell .tavern-composer-tools .model-picker-button {
+  min-height: 34px;
+}
+
+.updated-hybrid-shell .tavern-composer-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid var(--updated-rule);
+  border-radius: 999px;
+  background: var(--updated-field);
+  color: var(--updated-graphite);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.updated-hybrid-shell .tavern-composer-tool:hover,
+.updated-hybrid-shell .tavern-composer-tool:focus-visible {
+  color: var(--updated-ink);
+  border-color: var(--updated-copper);
+  background: var(--updated-wash);
+}
+
+.updated-hybrid-shell .tavern-composer-tool:active {
+  transform: translateY(1px);
+  background: color-mix(in srgb, var(--updated-copper) 14%, var(--updated-field));
+}
+
+.updated-hybrid-shell .tavern-composer-tool-music span:first-child {
+  color: var(--updated-copper);
+  font-size: 16px;
+}
+
+.updated-hybrid-shell .tavern-composer-hint {
+  margin-left: auto;
+  overflow: hidden;
+  color: var(--updated-graphite);
+  font-family: var(--updated-font-mono);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .updated-hybrid-shell .tavern-resize-handle {
@@ -213,5 +343,41 @@
 
   .updated-glass-rail-label {
     display: none;
+  }
+
+  .updated-hybrid-shell .tavern-composer-hint {
+    display: none;
+  }
+
+  .updated-hybrid-shell .tavern-composer-tools {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .updated-hybrid-shell .tavern-composer-tools::-webkit-scrollbar {
+    display: none;
+  }
+
+  .updated-hybrid-shell .tavern-composer-tool {
+    min-height: 40px;
+    padding-inline: 11px;
+  }
+}
+
+@media (max-width: 520px) {
+  .updated-hybrid-shell .tavern-composer {
+    padding-inline: 8px;
+  }
+
+  .updated-hybrid-shell .tavern-composer-main {
+    border-radius: 16px;
+  }
+
+  .updated-hybrid-shell .tavern-composer-tool span:last-child {
+    display: none;
+  }
+
+  .updated-hybrid-shell .tavern-composer-tool-music span:last-child {
+    display: inline;
   }
 }

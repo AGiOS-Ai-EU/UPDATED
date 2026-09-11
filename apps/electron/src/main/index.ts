@@ -3629,6 +3629,19 @@ ipcMain.on("panel:open-for-dictation", (event) => {
   openPanel({ focusComposer: true, trigger: "dictation" });
 });
 
+// The composer mic uses the same companion-owned dictation pipeline as the
+// global talk hotkey. The panel only requests the gesture; it never records
+// audio itself, keeping permissions and transcription in one place.
+ipcMain.on("panel:talk-down", (event) => {
+  if (event.sender !== panelWindow?.webContents) return;
+  handleTavernTalkDown();
+});
+
+ipcMain.on("panel:talk-up", (event) => {
+  if (event.sender !== panelWindow?.webContents) return;
+  handleTavernTalkUp();
+});
+
 ipcMain.on("panel:open-for-search", (event, query: unknown) => {
   if (event.sender !== companionWindow?.webContents) return;
   openPanel({ trigger: "search" });

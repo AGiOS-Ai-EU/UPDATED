@@ -1341,39 +1341,82 @@ function PanelInner({
 
           {chatActive && !settingsOpen && !capabilitiesOpen ? (
             <div className="tavern-composer">
-              <ModelPickerButton
-                value={llmModelId}
-                onChange={setLlmModel}
-                disabled={status === "streaming" || status === "submitted"}
-              />
-              <textarea
-                id="panel-composer"
-                className="tavern-input"
-                value={draft}
-                rows={1}
-                placeholder="Ask anything"
-                onMouseDown={() => window.api.panelRequestFocus()}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (
-                    e.key === "Enter" &&
-                    !e.shiftKey &&
-                    !e.nativeEvent.isComposing
-                  ) {
-                    e.preventDefault();
-                    send();
+              <div className="tavern-composer-main">
+                <button
+                  type="button"
+                  className="tavern-composer-icon"
+                  aria-label="Open tools and attachments"
+                  title="Open tools and attachments"
+                  onClick={() => setCapabilitiesOpen(true)}
+                >
+                  <span aria-hidden="true">＋</span>
+                </button>
+                <textarea
+                  id="panel-composer"
+                  className="tavern-input"
+                  value={draft}
+                  rows={1}
+                  placeholder="Ask UPDATED anything…"
+                  onMouseDown={() => window.api.panelRequestFocus()}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !e.shiftKey &&
+                      !e.nativeEvent.isComposing
+                    ) {
+                      e.preventDefault();
+                      send();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className={`tavern-btn tavern-btn-send${action === "stop" ? " is-stop" : ""}`}
+                  aria-label={action === "stop" ? "Stop generating" : "Send message"}
+                  title={action === "stop" ? "Stop generating" : "Send message"}
+                  onClick={action === "stop" ? stopGeneration : send}
+                >
+                  {action === "stop" ? "■" : "↑"}
+                </button>
+              </div>
+              <div className="tavern-composer-tools">
+                <ModelPickerButton
+                  value={llmModelId}
+                  onChange={setLlmModel}
+                  disabled={status === "streaming" || status === "submitted"}
+                />
+                <button
+                  type="button"
+                  className="tavern-composer-tool"
+                  aria-label="Hold to dictate"
+                  title="Hold to dictate"
+                  onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    window.api.panelTalkDown();
+                  }}
+                  onPointerUp={() => window.api.panelTalkUp()}
+                  onPointerCancel={() => window.api.panelTalkUp()}
+                >
+                  <span aria-hidden="true">◉</span>
+                  <span>Voice</span>
+                </button>
+                <button
+                  type="button"
+                  className="tavern-composer-tool tavern-composer-tool-music"
+                  aria-label="Recognize music"
+                  title="Recognize music"
+                  onClick={() =>
+                    setNotice(
+                      "Music recognition is ready for the next audio connector. Connect a source in Agents & apps to identify a track.",
+                    )
                   }
-                }}
-              />
-              <button
-                type="button"
-                className={`tavern-btn tavern-btn-send${action === "stop" ? " is-stop" : ""}`}
-                aria-label={action === "stop" ? "Stop generating" : "Send"}
-                title={action === "stop" ? "Stop generating" : "Send"}
-                onClick={action === "stop" ? stopGeneration : send}
-              >
-                {action === "stop" ? "■" : "↑"}
-              </button>
+                >
+                  <span aria-hidden="true">♫</span>
+                  <span>Identify music</span>
+                </button>
+                <span className="tavern-composer-hint">Enter to send · Shift+Enter for a new line</span>
+              </div>
             </div>
           ) : null}
         </div>
