@@ -9,10 +9,12 @@ import { getDb } from "../src/lib/db.js";
 // exactly one abort event. The registry-level semantics are unit-tested in the
 // SDK; this exercises the route's threading of `api.control` across stages.
 
+const transcribeSpy = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ text: "raw route text" }),
+);
+
 vi.mock("../src/lib/streaming/registry.js", () => ({
-  getProvider: () => ({
-    transcribe: vi.fn().mockResolvedValue({ text: "raw route text" }),
-  }),
+  getProvider: () => ({ transcribe: transcribeSpy }),
 }));
 
 vi.mock("../src/lib/streaming-stt.js", () => ({
@@ -72,6 +74,8 @@ describe("POST /api/transcribe — pipeline control", () => {
   beforeEach(() => {
     registry.current = new PluginRegistry();
     postProcessSpy.mockClear();
+    transcribeSpy.mockReset();
+    transcribeSpy.mockResolvedValue({ text: "raw route text" });
     const db = getDb();
     db.exec("DELETE FROM transcription_history");
     db.exec("DELETE FROM model_configs");
@@ -154,5 +158,18 @@ describe("POST /api/transcribe — pipeline control", () => {
     expect(postProcessSpy).toHaveBeenCalledTimes(1);
     // The uppercased transcript is what cleanup receives.
     expect(postProcessSpy.mock.calls[0][0]).toBe("RAW ROUTE TEXT");
+  });
+
+  it("marks provider silence as empty instead of a delivered blank", async () => {
+    transcribeSpy.mockResolvedValue({ text: "   " });
+
+    const res = await transcribe();
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as TranscribeBody;
+    expect(data.disposition).toBe("empty");
+    expect(data.reason).toBe("no_speech_detected");
+    expect(data.raw).toBe("");
+    expect(data.cleaned).toBe("");
+    expect(postProcessSpy).not.toHaveBeenCalled();
   });
 });

@@ -172,6 +172,21 @@ const transcribeRoute = new Hono().post("/", async (c) => {
     });
   };
 
+  // A provider returning no speech is a successful request, but it is not a
+  // successful delivery. Keep this distinct from plugin suppression so the
+  // desktop can offer a useful retry instead of silently treating an empty
+  // response as delivered text.
+  const emptyTranscriptResponse = () =>
+    c.json({
+      raw: "",
+      cleaned: "",
+      model: voiceModel,
+      durationMs: Date.now() - start,
+      audioDurationMs,
+      disposition: "empty" as const,
+      reason: "no_speech_detected" as const,
+    });
+
   if (api.control.state !== "running") {
     return suppressedResponse();
   }
@@ -298,7 +313,10 @@ const transcribeRoute = new Hono().post("/", async (c) => {
         // provider switch) must be suppressed like every other path —
         // otherwise we'd persist a blank history row and paste nothing.
         // `suppressedResponse()` returns blank output without saving history.
-        if (!rawText.trim() || api.control.state !== "running") {
+        if (!rawText.trim()) {
+          return emptyTranscriptResponse();
+        }
+        if (api.control.state !== "running") {
           return suppressedResponse();
         }
         // The cloud already ran STT + LLM cleanup; still apply the
@@ -316,6 +334,9 @@ const transcribeRoute = new Hono().post("/", async (c) => {
         // output rather than returning text the pipeline decided to drop.
         if (api.control.state !== "running") {
           return suppressedResponse();
+        }
+        if (!cleaned.trim()) {
+          return emptyTranscriptResponse();
         }
         const durationMs = Date.now() - start;
         const inputTokens = result.usage?.inputTokens ?? 0;
@@ -484,7 +505,10 @@ const transcribeRoute = new Hono().post("/", async (c) => {
 
   const durationMs = Date.now() - start;
 
-  if (!rawText.trim() || api.control.state !== "running") {
+  if (!rawText.trim()) {
+    return emptyTranscriptResponse();
+  }
+  if (api.control.state !== "running") {
     return suppressedResponse();
   }
 
@@ -551,6 +575,10 @@ const transcribeRoute = new Hono().post("/", async (c) => {
   log.debug(
     `post-process took ${Date.now() - ppStart}ms | cleaned=${JSON.stringify(pp.cleaned).slice(0, 120)}`,
   );
+
+  if (!pp.cleaned.trim()) {
+    return emptyTranscriptResponse();
+  }
 
   // STT and cleanup ran on separate models, so the user-perceived latency is
   // the full request → cleaned text. `durationMs` above is STT-only; recompute

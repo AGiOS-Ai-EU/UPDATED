@@ -175,6 +175,32 @@ describe("DictationController", () => {
     expect(errors).toEqual([]);
   });
 
+  it("surfaces a recoverable error when REST transcription returns no speech", async () => {
+    const { controller, errors, phases } = makeController();
+    await flush();
+    void controller.start();
+    await flush();
+    state.acquire?.resolve({});
+    await flush();
+    controller.stop();
+    streamer.getWavBlob.mockReturnValue(new Blob(["wav"]));
+    apiFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        raw: "",
+        cleaned: "",
+        disposition: "empty",
+        reason: "no_speech_detected",
+      }),
+    });
+
+    await vi.advanceTimersByTimeAsync(15_000);
+    await flush();
+
+    expect(errors).toEqual(["No speech detected — try again"]);
+    expect(phases.at(-1)).toBe("idle");
+  });
+
   it("reports a timeout when nothing was recorded", async () => {
     const { controller, errors, phases } = makeController();
     await flush();

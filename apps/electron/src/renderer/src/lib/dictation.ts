@@ -39,6 +39,7 @@ const ERROR_COPY: Record<string, string> = {
   cloud_auth_required: "Sign in with your AGICY account to dictate",
   usage_exceeded: "You've reached your UPDATED usage limit",
   provider_unavailable: "Transcription is temporarily unavailable",
+  no_speech_detected: "No speech detected — try again",
 };
 
 function describeError(message: string, code?: string): string {
@@ -207,6 +208,7 @@ export class DictationController {
         raw?: string;
         error?: string;
         disposition?: string;
+        reason?: string;
       } | null;
       if (session !== this.session) return;
       this.setPhase("idle");
@@ -214,8 +216,24 @@ export class DictationController {
         this.callbacks.onError(data?.error || "Transcription failed");
         return;
       }
-      if (data?.disposition && data.disposition !== "deliver") return;
-      this.enqueue(data?.cleaned || data?.raw || "");
+      if (data?.disposition && data.disposition !== "deliver") {
+        if (data.disposition === "empty") {
+          this.callbacks.onError(
+            describeError(
+              data.reason || "No speech detected — try again",
+              data.reason,
+            ),
+            data.reason,
+          );
+        }
+        return;
+      }
+      const text = data?.cleaned || data?.raw || "";
+      if (!text.trim()) {
+        this.callbacks.onError("No speech detected — try again", "no_speech_detected");
+        return;
+      }
+      this.enqueue(text);
     } catch (err) {
       if (session !== this.session) return;
       this.setPhase("idle");
