@@ -72,6 +72,7 @@ function useCloudAuthState(): UseCloudAuth {
   const cancelledRef = useRef(false);
   const signInPromiseRef = useRef<Promise<CloudUser | null> | null>(null);
   const signInAttemptRef = useRef(0);
+  const verificationUrlRef = useRef<string | null>(null);
   // Collapses concurrent status checks into one in-flight request. On a fresh
   // window the mount retry-loop and the `focus` listener (fired the moment the
   // just-shown window focuses) both call refreshInternal within the same tick —
@@ -88,7 +89,7 @@ function useCloudAuthState(): UseCloudAuth {
     if (refreshInFlightRef.current) return refreshInFlightRef.current;
     const run = (async () => {
       let reached = false;
-      const user = await getClient()
+      const agicyUser = await getClient()
         .api.auth.agicy.status.$get()
         .then(async (res) => {
           if (!res.ok) return null;
@@ -97,6 +98,19 @@ function useCloudAuthState(): UseCloudAuth {
           return data.user ?? null;
         })
         .catch(() => null);
+      // AGICY and the hosted account service have separate local sessions.
+      // Keep cloud features usable if the AGICY gateway is temporarily down.
+      const user =
+        agicyUser ??
+        (await getClient()
+          .api.auth.status.$get()
+          .then(async (res) => {
+            if (!res.ok) return null;
+            reached = true;
+            const data = await res.json();
+            return data.user ?? null;
+          })
+          .catch(() => null));
       if (reached) {
         if (!user && wasSignedInRef.current) {
           setSessionExpired(true);
@@ -159,6 +173,7 @@ function useCloudAuthState(): UseCloudAuth {
     setApproved(false);
     setError(null);
     setUserCode(null);
+    verificationUrlRef.current = null;
 
     const run = async (): Promise<CloudUser | null> => {
       await initApiBase();
@@ -168,36 +183,64 @@ function useCloudAuthState(): UseCloudAuth {
           "Could not reach the local UPDATED service. Quit UPDATED completely from the tray, reopen it, and try Sign in again.",
         );
       }
-      const codeRes = await getClient().api.auth.agicy.device.code.$post();
-      if (!codeRes.ok) {
-        const body = (await codeRes.json().catch(() => null)) as {
+      let provider: "agicy" | "hosted" = "agicy";
+      let codeRes: Response | null = null;
+      try {
+        codeRes = await getClient().api.auth.agicy.device.code.$post();
+      } catch {
+        // Try the hosted account service below when the AGICY gateway is down.
+      }
+      if (!codeRes?.ok) {
+        provider = "hosted";
+        try {
+          codeRes = await getClient().api.auth.device.code.$post();
+        } catch {
+          codeRes = null;
+        }
+      }
+      if (!codeRes?.ok) {
+        const body = (await codeRes?.json().catch(() => null)) as {
           error?: string;
         } | null;
         throw new Error(
           body?.error ??
-            `AGICY cloud sign-in is unavailable (${codeRes.status}). You can keep working locally and retry later.`,
+            "Hosted sign-in is temporarily unavailable. You can keep using local search and dictation, then retry.",
         );
       }
-      const code = await codeRes.json();
+      const code = (await codeRes.json()) as {
+        device_code: string;
+        user_code: string;
+        expires_in: number;
+        interval?: number;
+        verification_uri?: string;
+        verification_uri_complete?: string;
+      };
       setUserCode(code.user_code);
-      const opened = await window.api.openExternal(
-        agicyDeviceSignInUrl(code.user_code),
-      );
+      verificationUrlRef.current =
+        code.verification_uri_complete ??
+        code.verification_uri ??
+        agicyDeviceSignInUrl(code.user_code);
+      const opened = await window.api.openExternal(verificationUrlRef.current);
       if (!opened) {
         throw new Error(
-          `Could not open the sign-in page. Open https://agicy.ai/updated/my_device and enter ${code.user_code}.`,
+          `Could not open the sign-in page. Open ${verificationUrlRef.current} in a browser.`,
         );
       }
 
       const deadline = Date.now() + code.expires_in * 1000;
-      let intervalMs = Math.max(1, code.interval) * 1000;
+      let intervalMs = Math.max(1, code.interval ?? 5) * 1000;
       while (Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, intervalMs));
         if (cancelledRef.current) return null;
         if (attempt !== signInAttemptRef.current) return null;
-        const tokenRes = await getClient().api.auth.agicy.device.token.$post({
-          json: { device_code: code.device_code },
-        });
+        const tokenRes =
+          provider === "agicy"
+            ? await getClient().api.auth.agicy.device.token.$post({
+                json: { device_code: code.device_code },
+              })
+            : await getClient().api.auth.device.token.$post({
+                json: { device_code: code.device_code },
+              });
         if (tokenRes.status === 202) continue;
         if (tokenRes.status === 429) {
           intervalMs += 5000;
@@ -239,6 +282,7 @@ function useCloudAuthState(): UseCloudAuth {
           setSigningIn(false);
           setApproved(false);
           setUserCode(null);
+          verificationUrlRef.current = null;
           void window.api.closeAuthWindow();
         }
       });
@@ -248,7 +292,9 @@ function useCloudAuthState(): UseCloudAuth {
 
   const continueInBrowser = useCallback(async (): Promise<void> => {
     if (!userCode) return;
-    await window.api.openExternal(agicyDeviceSignInUrl(userCode));
+    await window.api.openExternal(
+      verificationUrlRef.current ?? agicyDeviceSignInUrl(userCode),
+    );
   }, [userCode]);
 
   const cancelSignIn = useCallback((): void => {
@@ -258,13 +304,19 @@ function useCloudAuthState(): UseCloudAuth {
     setSigningIn(false);
     setApproved(false);
     setUserCode(null);
+    verificationUrlRef.current = null;
     void window.api.closeAuthWindow();
   }, []);
 
   const signOut = useCallback(async (): Promise<void> => {
-    await getClient()
-      .api.auth.agicy["sign-out"].$post()
-      .catch(() => {});
+    await Promise.all([
+      getClient()
+        .api.auth.agicy["sign-out"].$post()
+        .catch(() => {}),
+      getClient()
+        .api.auth["sign-out"].$post()
+        .catch(() => {}),
+    ]);
     wasSignedInRef.current = false;
     setSessionExpired(false);
     setUser(null);
