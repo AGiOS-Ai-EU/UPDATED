@@ -15,6 +15,7 @@ import {
 import agentRoute from "./agent.js";
 import agentInstancesRoute from "./agent-instances.js";
 import agentOsRoute from "./agent-os.js";
+import agentTemplatesRoute from "./agent-templates.js";
 import agentThreadsRoute from "./agent-threads.js";
 import agicyAuth from "./agicy-auth.js";
 import auth from "./auth.js";
@@ -110,6 +111,7 @@ const apiRouter = new Hono()
   .route("/search", searchRoute)
   .route("/agent", agentRoute)
   .route("/agent-instances", agentInstancesRoute)
+  .route("/agent-templates", agentTemplatesRoute)
   .route("/agent/thread", agentThreadsRoute)
   .route("/agent-os", agentOsRoute)
   .route("/brain", brainRoute)

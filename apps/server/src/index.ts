@@ -66,6 +66,7 @@ const TIMEOUT_PREFIXES = [
   "/api/org",
   "/api/agent/thread",
   "/api/agent-instances",
+  "/api/agent-templates",
 ];
 
 async function shutdownServer(): Promise<void> {

@@ -7,6 +7,10 @@ import {
   listAgentInstances,
   updateAgentInstance,
 } from "@renderer/lib/agent-instances";
+import {
+  type AgentTemplate,
+  listAgentTemplates,
+} from "@renderer/lib/agent-templates";
 import { useCloudAuth } from "@renderer/lib/auth-context";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -73,6 +77,8 @@ export function AgentStudio(): React.JSX.Element {
   );
   const [venue, setVenue] = useState<AgentVenue>("paper");
   const [startingCapital, setStartingCapital] = useState("10000");
+  const [templates, setTemplates] = useState<AgentTemplate[]>([]);
+  const [templateId, setTemplateId] = useState("");
 
   const selected = useMemo(
     () => agents.find((agent) => agent.id === selectedId) ?? null,
@@ -99,6 +105,12 @@ export function AgentStudio(): React.JSX.Element {
       setLoading(false);
     }
   }, [selectedId]);
+
+  useEffect(() => {
+    void listAgentTemplates()
+      .then((next) => setTemplates(next))
+      .catch(() => setTemplates([]));
+  }, []);
 
   useEffect(() => {
     if (user) void load();
@@ -133,8 +145,14 @@ export function AgentStudio(): React.JSX.Element {
         name: name.trim(),
         venue,
         startingCapital: capital,
+        sourceTemplateId: templateId || undefined,
         strategySpec: {
           builder,
+          sourceTemplateId: templateId || undefined,
+          sourceTemplateName: templates.find((item) => item.id === templateId)
+            ?.name,
+          strategyStyle: templates.find((item) => item.id === templateId)
+            ?.style,
           brief: builder === "auto" ? brief.trim() : undefined,
           riskProfile: "conservative",
           execution: "paper_only",
@@ -257,6 +275,23 @@ export function AgentStudio(): React.JSX.Element {
                   />
                 </label>
               ) : null}
+              <label>
+                <span>Arena template · read-only (optional)</span>
+                <select
+                  value={templateId}
+                  onChange={(event) => setTemplateId(event.target.value)}
+                >
+                  <option value="">Blank strategy</option>
+                  {templates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.icon} {template.name} ·{" "}
+                      {template.riskGrade
+                        ? `Risk ${template.riskGrade}`
+                        : template.category}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label>
                 <span>Venue</span>
                 <select
