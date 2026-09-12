@@ -26,6 +26,7 @@ import dismissedNotifications from "./dismissed-notifications.js";
 import eventsRoute from "./events.js";
 import history from "./history.js";
 import models from "./models.js";
+import music from "./music.js";
 import notificationsRoute from "./notifications.js";
 import org from "./org.js";
 import outputRoute from "./output.js";
@@ -96,6 +97,7 @@ const apiRouter = new Hono()
   .route("/auth", auth)
   .route("/auth/agicy", agicyAuth)
   .route("/models", models)
+  .route("/music", music)
   .route("/transcribe", transcribe)
   .route("/transcribe", transcribePreWarmRoute)
   .route("/transparency", transparency)

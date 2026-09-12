@@ -6,7 +6,13 @@ import { dirname, join } from "node:path";
  * query text are deliberately excluded; the ledger records only what left the
  * machine, where it went, and why the request was authorized.
  */
-export type EgressCategory = "auth" | "voice" | "search" | "agent" | "connector";
+export type EgressCategory =
+  | "auth"
+  | "voice"
+  | "music"
+  | "search"
+  | "agent"
+  | "connector";
 
 export interface EgressLedgerEvent {
   timestamp: string;
@@ -16,7 +22,11 @@ export interface EgressLedgerEvent {
   status: number | null;
   requestBytes: number | null;
   responseBytes: number | null;
-  authorization: "public" | "account-session" | "user-api-key";
+  authorization:
+    | "public"
+    | "account-session"
+    | "user-api-key"
+    | "service-token";
   surface: string;
 }
 

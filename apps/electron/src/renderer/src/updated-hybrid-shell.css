@@ -310,6 +310,17 @@
   background: color-mix(in srgb, var(--updated-copper) 14%, var(--updated-field));
 }
 
+.updated-hybrid-shell .tavern-composer-tool:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.updated-hybrid-shell .tavern-composer-tool.is-active {
+  border-color: var(--updated-copper);
+  color: var(--updated-ink);
+  background: color-mix(in srgb, var(--updated-copper) 14%, var(--updated-field));
+}
+
 .updated-hybrid-shell .tavern-set-ledger {
   display: grid;
   gap: 4px;

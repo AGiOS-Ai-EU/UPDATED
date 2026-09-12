@@ -33,6 +33,7 @@ import { applyAppearanceToDocument } from "@renderer/lib/apply-appearance";
 import { CloudAuthProvider, useCloudAuth } from "@renderer/lib/auth-context";
 import { resetBrainCache } from "@renderer/lib/brain-fs";
 import { composerAction } from "@renderer/lib/composer-action";
+import { Recorder } from "@renderer/lib/recorder";
 import { seedMessageFor } from "@renderer/lib/onboarding-core";
 import {
   connectorConnectionsQueryOptions,
@@ -731,6 +732,7 @@ function PanelInner({
     return () => offUpdate?.();
   }, []);
   const [draft, setDraft] = useState("");
+  const [musicBusy, setMusicBusy] = useState(false);
 
   const [notice, setNotice] = useState<string | null>(null);
   const [approvals, setApprovals] = useState<AgentToolCall[]>([]);
@@ -742,6 +744,7 @@ function PanelInner({
   const [inputMode, setInputMode] = useState<InputMode>("dictation");
   const [voiceSearchQuery, setVoiceSearchQuery] = useState<string | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const musicRecorderRef = useRef<Recorder | null>(null);
   const dictationBaseRef = useRef<string | null>(null);
   // Whether the current draft arrived by voice, so message_sent can say so.
   const dictatedRef = useRef(false);
@@ -852,6 +855,60 @@ function PanelInner({
 
   const busy = status === "submitted" || status === "streaming";
   const action = composerAction(status);
+
+  useEffect(() => {
+    return () => musicRecorderRef.current?.destroy();
+  }, []);
+
+  const recognizeMusic = async (): Promise<void> => {
+    if (musicBusy || busy || tab !== "chat") return;
+    const recorder = musicRecorderRef.current ?? new Recorder();
+    musicRecorderRef.current = recorder;
+    setMusicBusy(true);
+    setNotice("Listening for music… 6 seconds");
+    try {
+      await recorder.start();
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 6_000));
+      const audio = await recorder.stop();
+      if (!audio) throw new Error("No audio captured");
+      const form = new FormData();
+      form.append("audio", audio, "music.wav");
+      const response = await apiFetch("/api/music/recognize", {
+        method: "POST",
+        body: form,
+      });
+      const payload = (await response.json().catch(() => null)) as {
+        matched?: boolean;
+        track?: { artist?: string; title?: string; songLink?: string | null };
+        message?: string;
+        error?: string;
+      } | null;
+      if (payload?.error === "music_recognition_not_configured") {
+        setNotice("Music recognition is not configured on this AGICY server yet.");
+      } else if (!response.ok) {
+        setNotice(payload?.message ?? "Music recognition failed. Try another clip.");
+      } else if (payload?.matched && payload.track) {
+        const label = `${payload.track.title ?? "Unknown track"} — ${payload.track.artist ?? "Unknown artist"}`;
+        setNotice(
+          payload.track.songLink
+            ? `Identified: ${label} · ${payload.track.songLink}`
+            : `Identified: ${label}`,
+        );
+      } else {
+        setNotice("No confident match. Try moving closer to the speaker and record again.");
+      }
+    } catch (error) {
+      recorder.cancel();
+      const message = error instanceof Error ? error.message : "Unknown recording error";
+      setNotice(
+        message.includes("Permission") || message.includes("permission")
+          ? "Microphone access is required to identify music."
+          : "Could not capture music. Try again.",
+      );
+    } finally {
+      setMusicBusy(false);
+    }
+  };
   // The spark loader holds the floor until the first response text streams in;
   // once text is flowing, the growing message itself is the indicator.
   const lastMessage = messages[messages.length - 1];
@@ -1403,17 +1460,14 @@ function PanelInner({
                 </button>
                 <button
                   type="button"
-                  className="tavern-composer-tool tavern-composer-tool-music"
+                  className={`tavern-composer-tool tavern-composer-tool-music${musicBusy ? " is-active" : ""}`}
                   aria-label="Recognize music"
-                  title="Recognize music"
-                  onClick={() =>
-                    setNotice(
-                      "Music recognition is ready for the next audio connector. Connect a source in Agents & apps to identify a track.",
-                    )
-                  }
+                  title={musicBusy ? "Listening for music" : "Recognize music"}
+                  disabled={musicBusy || busy}
+                  onClick={() => void recognizeMusic()}
                 >
-                  <span aria-hidden="true">♫</span>
-                  <span>Identify music</span>
+                  <span aria-hidden="true">{musicBusy ? "◌" : "♫"}</span>
+                  <span>{musicBusy ? "Listening…" : "Identify music"}</span>
                 </button>
                 <span className="tavern-composer-hint">Enter to send · Shift+Enter for a new line</span>
               </div>

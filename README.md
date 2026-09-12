@@ -100,6 +100,17 @@ Mic → UPDATED app → https://agicy.ai/api/stt/transcribe → Deepgram EU → 
 
 Without a Brave Search API key, the local search surface remains available for interface testing; live provider availability is shown in the workspace.
 
+Music recognition is available when the server operator sets `AUDD_API_TOKEN`.
+The Electron client never receives this token: it uploads a short recording to
+the AGICY server, which calls AudD and returns normalized track metadata. The
+request is listed in the local transparency ledger. If the token is not set,
+the button remains available but reports that recognition is not configured.
+
+Odesli/Songlink API enrichment is intentionally not enabled: its public
+`v1-alpha.1` API is deprecated, so the first music pass returns AudD metadata
+and its canonical song link only. A replacement link provider can be added
+behind the same server adapter later.
+
 On-device STT, a full Agent Room and conversational Maps control remain staged work rather than features of the current Windows test build.
 
 ## Shipping now vs next
