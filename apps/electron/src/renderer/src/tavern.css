@@ -2197,6 +2197,370 @@
   line-height: 1.45;
 }
 
+.connected-apps-divider {
+  height: 1px;
+  margin: 4px 0 2px;
+  background: var(--tavern-rule);
+}
+
+/* ── Agent Studio: private, paper-first agent workspace ─────────────── */
+
+.agent-studio {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--tavern-rule);
+  border-radius: 13px;
+  padding: 13px;
+  background: color-mix(in srgb, var(--tavern-parchment) 55%, var(--tavern-card));
+}
+
+.agent-studio-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.agent-studio-head h2 {
+  margin: 2px 0 2px;
+  font-family: var(--tavern-px);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.agent-studio-head p {
+  max-width: 48ch;
+  margin: 0;
+  color: var(--tavern-mute);
+  font-size: 11px;
+}
+
+.agent-studio-safety {
+  flex: 0 0 auto;
+  border: 1px solid #9daa7b;
+  border-radius: 999px;
+  padding: 4px 7px;
+  color: #4a7c46;
+  font-family: var(--tavern-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.agent-studio-signin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--tavern-rule);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--tavern-card);
+}
+
+.agent-studio-signin strong {
+  display: block;
+  font-size: 12px;
+}
+
+.agent-studio-signin p {
+  margin: 3px 0 0;
+  color: var(--tavern-mute);
+  font-size: 10px;
+}
+
+.agent-builder {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--tavern-rule);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--tavern-card);
+}
+
+.agent-builder-tabs {
+  display: flex;
+  gap: 5px;
+}
+
+.agent-builder-tabs button {
+  border: 1px solid var(--tavern-rule);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: transparent;
+  color: var(--tavern-mute);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+}
+
+.agent-builder-tabs button.is-active {
+  border-color: var(--tavern-lantern);
+  background: var(--tavern-wash);
+  color: var(--tavern-ink);
+}
+
+.agent-builder-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(120px, 0.8fr) minmax(120px, 0.8fr);
+  gap: 8px;
+}
+
+.agent-builder-grid label {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.agent-builder-grid label > span {
+  color: var(--tavern-mute);
+  font-family: var(--tavern-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agent-builder-grid input,
+.agent-builder-grid select,
+.agent-builder-grid textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--tavern-rule);
+  border-radius: 7px;
+  padding: 7px 8px;
+  background: var(--tavern-card);
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  resize: vertical;
+}
+
+.agent-builder-grid input:focus-visible,
+.agent-builder-grid select:focus-visible,
+.agent-builder-grid textarea:focus-visible {
+  outline: 2px solid var(--tavern-lantern);
+  outline-offset: 1px;
+}
+
+.agent-builder-wide {
+  grid-column: 1 / -1;
+}
+
+.agent-builder-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.agent-builder-foot small {
+  color: var(--tavern-mute);
+  font-size: 10px;
+}
+
+.agent-studio-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 10px;
+}
+
+.agent-list,
+.agent-detail {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.agent-card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  border: 1px solid var(--tavern-rule);
+  border-radius: 9px;
+  padding: 8px;
+  background: var(--tavern-card);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.agent-card:hover,
+.agent-card.is-selected {
+  border-color: var(--tavern-lantern);
+  transform: translateY(-1px);
+}
+
+.agent-card-mark {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--tavern-wash);
+  color: var(--tavern-lantern);
+  font-family: var(--tavern-mono);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.agent-card-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.agent-card-copy strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-card-copy small {
+  overflow: hidden;
+  color: var(--tavern-mute);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-mode {
+  border: 1px solid var(--tavern-rule);
+  border-radius: 999px;
+  padding: 3px 6px;
+  color: var(--tavern-mute);
+  font-family: var(--tavern-mono);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.agent-mode.mode-paper {
+  border-color: #9daa7b;
+  color: #4a7c46;
+}
+
+.agent-mode.mode-retired {
+  opacity: 0.65;
+}
+
+.agent-detail {
+  border: 1px solid var(--tavern-rule);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--tavern-card);
+}
+
+.agent-detail-head,
+.agent-detail-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.agent-detail-head h3 {
+  margin: 2px 0 0;
+  font-size: 14px;
+}
+
+.agent-detail-refresh {
+  border: 0;
+  background: none;
+  color: var(--tavern-robe);
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+}
+
+.agent-detail-refresh:hover {
+  color: var(--tavern-lantern);
+}
+
+.agent-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  margin: 3px 0;
+}
+
+.agent-metrics > div {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--tavern-rule);
+  border-radius: 7px;
+  padding: 6px;
+}
+
+.agent-metrics span {
+  color: var(--tavern-mute);
+  font-size: 9px;
+}
+
+.agent-metrics strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-metrics .is-positive { color: #4a7c46; }
+.agent-metrics .is-negative { color: var(--tavern-rust); }
+
+.agent-detail-section {
+  display: grid;
+  gap: 5px;
+}
+
+.agent-version {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px 7px;
+  border-bottom: 1px dashed var(--tavern-rule);
+  padding: 4px 0;
+}
+
+.agent-version strong,
+.agent-version span { font-size: 10px; }
+.agent-version span { color: var(--tavern-mute); }
+.agent-version small { grid-column: 1 / -1; overflow: hidden; color: var(--tavern-mute); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+
+.agent-detail-note {
+  margin: 0;
+  color: var(--tavern-mute);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.agent-empty {
+  display: grid;
+  gap: 3px;
+  border: 1px dashed var(--tavern-rule);
+  border-radius: 9px;
+  padding: 12px 9px;
+}
+
+.agent-empty strong { font-size: 11px; }
+.agent-empty span { color: var(--tavern-mute); font-size: 10px; }
+
+@media (max-width: 600px) {
+  .agent-studio-head,
+  .agent-studio-signin,
+  .agent-builder-foot { align-items: stretch; flex-direction: column; }
+  .agent-builder-grid,
+  .agent-studio-layout { grid-template-columns: 1fr; }
+  .agent-builder-wide { grid-column: auto; }
+  .agent-studio-safety { justify-self: start; }
+  .agent-studio-signin .connector-action,
+  .agent-builder-foot .connector-action { width: 100%; }
+}
+
 .connector-search {
   box-sizing: border-box;
   display: flex;

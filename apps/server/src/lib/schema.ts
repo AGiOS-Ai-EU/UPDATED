@@ -7,7 +7,7 @@ import { countFixes } from "./fixes.js";
 // and would otherwise perturb test module-mock ordering.
 const DEFAULT_CLOUD_URL = "https://service.freestylevoice.com";
 
-const SCHEMA_VERSION = 26;
+const SCHEMA_VERSION = 27;
 
 // Legacy default format-rule patterns (used only by pre-v12 migrations below):
 // domain/phrase entries match as substrings of url+title+app; bare words match
@@ -734,6 +734,61 @@ function applyMigrations(db: DatabaseSync, currentVersion: number): void {
 
   if (currentVersion < 26) {
     db.exec("DROP TABLE IF EXISTS agent_threads");
+  }
+
+  if (currentVersion < 27) {
+    // Local-first Agent Studio foundation. These records deliberately model
+    // drafts and paper agents only; live exchange execution belongs behind a
+    // separate, audited cloud service and is not enabled by this migration.
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS agent_instances (
+        id                 TEXT PRIMARY KEY,
+        owner_id           TEXT NOT NULL,
+        name               TEXT NOT NULL,
+        source_template_id TEXT,
+        venue              TEXT NOT NULL DEFAULT 'paper',
+        mode               TEXT NOT NULL DEFAULT 'draft',
+        starting_capital   REAL NOT NULL DEFAULT 0,
+        realized_pnl       REAL NOT NULL DEFAULT 0,
+        unrealized_pnl     REAL NOT NULL DEFAULT 0,
+        fees               REAL NOT NULL DEFAULT 0,
+        created_at         INTEGER NOT NULL,
+        activated_at       INTEGER,
+        live_started_at    INTEGER,
+        updated_at         INTEGER NOT NULL,
+        CHECK (venue IN ('paper', 'hyperliquid', 'binance', 'coinbase')),
+        CHECK (mode IN ('draft', 'paper', 'paused', 'retired')),
+        CHECK (starting_capital >= 0)
+      )
+    `);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS agent_versions (
+        id            TEXT PRIMARY KEY,
+        agent_id      TEXT NOT NULL REFERENCES agent_instances(id) ON DELETE CASCADE,
+        version       INTEGER NOT NULL,
+        strategy_spec TEXT NOT NULL DEFAULT '{}',
+        created_at    INTEGER NOT NULL,
+        UNIQUE(agent_id, version)
+      )
+    `);
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS agent_events (
+        id         TEXT PRIMARY KEY,
+        agent_id   TEXT NOT NULL REFERENCES agent_instances(id) ON DELETE CASCADE,
+        kind       TEXT NOT NULL,
+        payload    TEXT NOT NULL DEFAULT '{}',
+        created_at INTEGER NOT NULL
+      )
+    `);
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_agent_instances_updated ON agent_instances(updated_at DESC)",
+    );
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_agent_versions_agent ON agent_versions(agent_id, version DESC)",
+    );
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_agent_events_agent ON agent_events(agent_id, created_at DESC)",
+    );
   }
 
   // Upsert schema version

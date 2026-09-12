@@ -1,3 +1,4 @@
+import { AgentStudio } from "@renderer/components/agent-studio";
 import { capture } from "@renderer/lib/analytics";
 import {
   type ConnectorAuthField,
@@ -689,6 +690,14 @@ export function ConnectedApps({
 
   return (
     <section className="connected-apps" aria-busy={browseQuery.isFetching}>
+      <AgentStudio />
+      <div className="connected-apps-divider" aria-hidden="true" />
+      <div className="connected-apps-intro">
+        <span>Connected tools</span>
+        <p>
+          Connect the services UPDATED can use alongside your private agents.
+        </p>
+      </div>
       <label className="connector-search" htmlFor="connector-search">
         <span aria-hidden="true">⌕</span>
         <input

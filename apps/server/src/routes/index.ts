@@ -13,6 +13,7 @@ import {
   setPersonProperties,
 } from "../lib/posthog.js";
 import agentRoute from "./agent.js";
+import agentInstancesRoute from "./agent-instances.js";
 import agentOsRoute from "./agent-os.js";
 import agentThreadsRoute from "./agent-threads.js";
 import agicyAuth from "./agicy-auth.js";
@@ -108,6 +109,7 @@ const apiRouter = new Hono()
   .route("/post-process", postProcessRoute)
   .route("/search", searchRoute)
   .route("/agent", agentRoute)
+  .route("/agent-instances", agentInstancesRoute)
   .route("/agent/thread", agentThreadsRoute)
   .route("/agent-os", agentOsRoute)
   .route("/brain", brainRoute)
