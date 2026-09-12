@@ -78,7 +78,7 @@ Sign in opens [agicy.ai/updated/my_device](https://agicy.ai/updated/my_device): 
 
 **Cost (say this before you install):** Voice uses **metered inference credits** on your AGICY account. New accounts receive a free allotment (see [agicy.ai/updated/usage](https://agicy.ai/updated/usage) after sign-in). Search itself is free; optional Brave Search uses **your** Brave key. The app is not “unlimited free cloud STT.”
 
-Cloud sign-in is optional for local search and local workflows. If cloud sign-in is temporarily unavailable, the workspace stays usable and shows a retryable local-mode status instead of blocking the conversation.
+Cloud sign-in is optional for local search and local workflows. Voice transcription is hosted by AGICY in this beta. If cloud sign-in is temporarily unavailable, the workspace stays usable and shows a retryable status instead of implying that voice is offline.
 
 ## How voice works in 0.9.0-beta.8 (canonical)
 

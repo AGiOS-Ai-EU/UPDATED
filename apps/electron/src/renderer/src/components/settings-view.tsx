@@ -762,8 +762,8 @@ function BillingPage(): React.JSX.Element {
         }
       />
       <p className="tavern-set-hint">
-        Hosted STT debits your AGICY wallet (shown on UPDATED usage). Local
-        whisper dictation does not.
+        Hosted STT debits your AGICY wallet (shown on UPDATED usage). On-device
+        whisper dictation is planned and is not included in this beta.
       </p>
     </>
   );

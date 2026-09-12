@@ -47,7 +47,7 @@ const agicyAuth = new Hono()
       return c.json(
         {
           error:
-            "AGICY cloud sign-in is temporarily unavailable. You can keep using search and local voice, then retry sign-in later.",
+            "AGICY cloud sign-in is temporarily unavailable. You can keep using search and local workflows; voice transcription remains hosted. Retry sign-in later.",
         },
         503,
       );
