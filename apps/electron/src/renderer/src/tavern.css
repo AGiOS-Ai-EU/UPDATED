@@ -2483,6 +2483,61 @@
   color: var(--tavern-lantern);
 }
 
+.agent-edit-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 7px;
+  border-top: 1px dashed var(--tavern-rule);
+  padding-top: 8px;
+}
+
+.agent-edit-form label {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.agent-edit-form label > span {
+  color: var(--tavern-mute);
+  font-family: var(--tavern-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agent-edit-form input,
+.agent-edit-form select,
+.agent-edit-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--tavern-rule);
+  border-radius: 7px;
+  padding: 7px 8px;
+  background: var(--tavern-card);
+  color: inherit;
+  font: inherit;
+  font-size: 11px;
+  resize: vertical;
+}
+
+.agent-edit-form input:focus-visible,
+.agent-edit-form select:focus-visible,
+.agent-edit-form textarea:focus-visible {
+  outline: 2px solid var(--tavern-lantern);
+  outline-offset: 1px;
+}
+
+.agent-edit-wide {
+  grid-column: 1 / -1;
+}
+
+.agent-edit-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 6px;
+}
+
 .agent-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2554,8 +2609,11 @@
   .agent-studio-signin,
   .agent-builder-foot { align-items: stretch; flex-direction: column; }
   .agent-builder-grid,
-  .agent-studio-layout { grid-template-columns: 1fr; }
+  .agent-studio-layout,
+  .agent-edit-form { grid-template-columns: 1fr; }
   .agent-builder-wide { grid-column: auto; }
+  .agent-edit-wide,
+  .agent-edit-actions { grid-column: auto; }
   .agent-studio-safety { justify-self: start; }
   .agent-studio-signin .connector-action,
   .agent-builder-foot .connector-action { width: 100%; }

@@ -3,6 +3,7 @@ import {
   type AgentMode,
   type AgentVenue,
   createAgentInstance,
+  createAgentVersion,
   getAgentInstance,
   listAgentInstances,
   updateAgentInstance,
@@ -79,6 +80,11 @@ export function AgentStudio(): React.JSX.Element {
   const [startingCapital, setStartingCapital] = useState("10000");
   const [templates, setTemplates] = useState<AgentTemplate[]>([]);
   const [templateId, setTemplateId] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editVenue, setEditVenue] = useState<AgentVenue>("paper");
+  const [editCapital, setEditCapital] = useState("");
+  const [editBrief, setEditBrief] = useState("");
 
   const selected = useMemo(
     () => agents.find((agent) => agent.id === selectedId) ?? null,
@@ -121,11 +127,55 @@ export function AgentStudio(): React.JSX.Element {
     setSelectedId(id);
     setError(null);
     try {
-      setDetail(await getAgentInstance(id));
+      const next = await getAgentInstance(id);
+      setDetail(next);
+      setEditing(false);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Could not open this agent.",
       );
+    }
+  };
+
+  const beginEditing = (): void => {
+    if (!selected || !detail) return;
+    setEditName(selected.name);
+    setEditVenue(selected.venue);
+    setEditCapital(String(selected.startingCapital));
+    setEditBrief(String(detail.versions[0]?.strategySpec.brief ?? ""));
+    setEditing(true);
+  };
+
+  const saveEdits = async (): Promise<void> => {
+    if (!selected) return;
+    const capital = Number(editCapital);
+    if (!editName.trim() || !Number.isFinite(capital) || capital < 0) {
+      setError("Give your agent a name and a valid starting capital.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const updated = await updateAgentInstance(selected.id, {
+        name: editName.trim(),
+        venue: editVenue,
+        startingCapital: capital,
+      });
+      setAgents((current) =>
+        current.map((agent) => (agent.id === updated.id ? updated : agent)),
+      );
+      await createAgentVersion(selected.id, {
+        builder: "manual",
+        brief: editBrief.trim(),
+        execution: "paper_only",
+      });
+      await selectAgent(selected.id);
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Could not save this agent.",
+      );
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -396,7 +446,74 @@ export function AgentStudio(): React.JSX.Element {
                   >
                     Refresh
                   </button>
+                  <button
+                    type="button"
+                    className="agent-detail-refresh"
+                    onClick={beginEditing}
+                  >
+                    Edit
+                  </button>
                 </div>
+                {editing ? (
+                  <div className="agent-edit-form">
+                    <label>
+                      <span>Name</span>
+                      <input
+                        value={editName}
+                        onChange={(event) => setEditName(event.target.value)}
+                      />
+                    </label>
+                    <label>
+                      <span>Venue</span>
+                      <select
+                        value={editVenue}
+                        onChange={(event) =>
+                          setEditVenue(event.target.value as AgentVenue)
+                        }
+                      >
+                        {VENUES.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      <span>Starting capital (USD)</span>
+                      <input
+                        inputMode="decimal"
+                        value={editCapital}
+                        onChange={(event) => setEditCapital(event.target.value)}
+                      />
+                    </label>
+                    <label className="agent-edit-wide">
+                      <span>Strategy note · saves a new version</span>
+                      <textarea
+                        rows={3}
+                        value={editBrief}
+                        onChange={(event) => setEditBrief(event.target.value)}
+                      />
+                    </label>
+                    <div className="agent-edit-actions">
+                      <button
+                        type="button"
+                        className="connector-action"
+                        disabled={busy}
+                        onClick={() => void saveEdits()}
+                      >
+                        {busy ? "Saving…" : "Save version"}
+                      </button>
+                      <button
+                        type="button"
+                        className="connector-action is-secondary"
+                        disabled={busy}
+                        onClick={() => setEditing(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
                 <div className="agent-metrics">
                   <div>
                     <span>Since</span>
@@ -441,6 +558,16 @@ export function AgentStudio(): React.JSX.Element {
                       onClick={() => void setMode(selected, "paused")}
                     >
                       Pause
+                    </button>
+                  ) : null}
+                  {selected.mode !== "retired" ? (
+                    <button
+                      type="button"
+                      className="connector-action is-secondary"
+                      disabled={busy}
+                      onClick={() => void setMode(selected, "retired")}
+                    >
+                      Retire
                     </button>
                   ) : null}
                 </div>

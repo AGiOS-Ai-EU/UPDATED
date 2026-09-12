@@ -113,3 +113,19 @@ export async function updateAgentInstance(
   const body = (await response.json()) as { agent: AgentInstance };
   return body.agent;
 }
+
+export async function createAgentVersion(
+  id: string,
+  strategySpec: Record<string, unknown>,
+): Promise<AgentVersion> {
+  const response = await apiFetch(
+    `/api/agent-instances/${encodeURIComponent(id)}/versions`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ strategySpec }),
+    },
+  );
+  if (!response.ok) throw await parseError(response);
+  return (await response.json()) as AgentVersion;
+}
