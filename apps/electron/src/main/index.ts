@@ -40,7 +40,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 import { execFile } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -200,6 +200,12 @@ import {
   resolveSpriteImpact,
   resolveSpritePerformDone,
 } from "./sprite-travel";
+import {
+  type ArenaTrade,
+  diffTradeAlerts,
+  normalizeArenaTrade,
+  type TradeAlertState,
+} from "./trade-alerts";
 
 // Test isolation: E2E/probe runs in the unpackaged dev binary would otherwise
 // share the real "Electron" userData (settings.json included) with a running
@@ -2018,6 +2024,7 @@ app.whenReady().then(async () => {
     },
   });
   startNotificationEvents();
+  startTradeAlerts();
 
   // A signed-out launch surfaces the panel unprompted: the sign-in gate is
   // the whole product until there's a session, and a first-time user doesn't
@@ -3424,6 +3431,145 @@ async function postNotification(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Crypto Arena trade alerts
+// ---------------------------------------------------------------------------
+
+const CRYPTO_ARENA_URL = "https://agicy.ai/trading/ai_agents_crypto";
+const CRYPTO_ARENA_API = "https://agicy.ai/api/arena/trades";
+const TRADE_ALERT_POLL_MS = 30_000;
+const TRADE_ALERT_TIMEOUT_MS = 10_000;
+const TRADE_ALERT_STATE_FILE = "crypto-trade-alerts.json";
+
+let tradeAlertTimer: NodeJS.Timeout | null = null;
+let tradeAlertState: TradeAlertState | null = null;
+let tradeAlertPollInFlight = false;
+
+function readTradeAlertState(): TradeAlertState {
+  try {
+    const parsed = JSON.parse(
+      readFileSync(
+        join(app.getPath("userData"), TRADE_ALERT_STATE_FILE),
+        "utf8",
+      ),
+    ) as Partial<TradeAlertState>;
+    if (!parsed || typeof parsed !== "object") throw new Error("invalid state");
+    const statuses = parsed.statuses;
+    if (!statuses || typeof statuses !== "object")
+      throw new Error("invalid state");
+    const safeStatuses: TradeAlertState["statuses"] = {};
+    for (const [id, status] of Object.entries(statuses)) {
+      if (status === "OPEN" || status === "CLOSED") safeStatuses[id] = status;
+    }
+    return { initialized: parsed.initialized === true, statuses: safeStatuses };
+  } catch {
+    return { initialized: false, statuses: {} };
+  }
+}
+
+function writeTradeAlertState(state: TradeAlertState): void {
+  try {
+    writeFileSync(
+      join(app.getPath("userData"), TRADE_ALERT_STATE_FILE),
+      JSON.stringify(state),
+      "utf8",
+    );
+  } catch (error) {
+    log.warn(`Could not persist crypto trade alert state: ${String(error)}`);
+  }
+}
+
+async function fetchArenaTrades(
+  status: "OPEN" | "CLOSED",
+): Promise<ArenaTrade[] | null> {
+  const params = new URLSearchParams({ status, limit: "100" });
+  // The closed feed is only used for lifecycle alerts; keeping the window
+  // bounded avoids downloading the whole public journal on every poll.
+  if (status === "CLOSED") {
+    params.set(
+      "since",
+      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    );
+  }
+  try {
+    const response = await fetch(`${CRYPTO_ARENA_API}?${params.toString()}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(TRADE_ALERT_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      log.warn(`Crypto Arena ${status} feed returned HTTP ${response.status}`);
+      return null;
+    }
+    const payload = (await response.json()) as { trades?: unknown };
+    if (!Array.isArray(payload.trades)) return null;
+    return payload.trades
+      .map((trade) => normalizeArenaTrade(trade, status))
+      .filter((trade): trade is ArenaTrade => trade !== null);
+  } catch (error) {
+    log.warn(`Crypto Arena ${status} feed unavailable: ${String(error)}`);
+    return null;
+  }
+}
+
+async function pollTradeAlerts(): Promise<void> {
+  if (tradeAlertPollInFlight) return;
+  tradeAlertPollInFlight = true;
+  try {
+    const settings = await getServerSettings();
+    if (settings?.[SETTINGS_KEYS.cryptoTradeNotifications] !== "true") return;
+
+    const [openTrades, closedTrades] = await Promise.all([
+      fetchArenaTrades("OPEN"),
+      fetchArenaTrades("CLOSED"),
+    ]);
+    // Do not advance the cursor on a partial/network failure. That guarantees
+    // a temporary outage cannot make a real open/close event disappear.
+    if (!openTrades || !closedTrades) return;
+
+    const previous = tradeAlertState ?? readTradeAlertState();
+    const { next, events } = diffTradeAlerts(
+      previous,
+      openTrades,
+      closedTrades,
+    );
+    let delivered = true;
+    for (const event of events) {
+      const result = await postNotification("", {
+        kind: "info",
+        title: event.title,
+        body: event.body,
+        url: CRYPTO_ARENA_URL,
+      });
+      if (!result) delivered = false;
+    }
+    if (!delivered) return;
+
+    tradeAlertState = next;
+    writeTradeAlertState(next);
+    if (events.length > 0) await refreshNotifications();
+  } finally {
+    tradeAlertPollInFlight = false;
+  }
+}
+
+function startTradeAlerts(): void {
+  if (tradeAlertTimer) return;
+  // The first poll seeds the current feed. Subsequent polls are the only ones
+  // that can create notifications, so enabling the toggle is never noisy.
+  void pollTradeAlerts();
+  tradeAlertTimer = setInterval(
+    () => void pollTradeAlerts(),
+    TRADE_ALERT_POLL_MS,
+  );
+  tradeAlertTimer.unref();
+}
+
+function stopTradeAlerts(): void {
+  if (!tradeAlertTimer) return;
+  clearInterval(tradeAlertTimer);
+  tradeAlertTimer = null;
+}
+
 async function refreshNotifications(): Promise<void> {
   const items = await fetchNotifications();
   if (items.length === 0) {
@@ -4801,6 +4947,7 @@ function cleanupBeforeQuit(): void {
   audioPlaybackController.restoreSync();
   stopLinuxPasteHelper();
   stopNotificationEvents();
+  stopTradeAlerts();
   destroyCompanionWindow();
   destroyPanelWindow();
   if (keyListener) {

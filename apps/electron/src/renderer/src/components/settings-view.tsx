@@ -1947,6 +1947,30 @@ export function SettingsView({
           <BillingPage />
         ) : page === "notifications" ? (
           <>
+            <p className="tavern-set-hint is-lead">
+              Keep an eye on the AGICY Crypto Arena without leaving UPDATED.
+              Alerts are off until you opt in and never place trades for you.
+            </p>
+            <SectionLabel>AGICY Crypto Arena</SectionLabel>
+            <ToggleRow
+              label="Trade alerts"
+              on={
+                value(SETTINGS_KEYS.cryptoTradeNotifications, "false") ===
+                "true"
+              }
+              onChange={(next) =>
+                setSetting(
+                  SETTINGS_KEYS.cryptoTradeNotifications,
+                  next ? "true" : "false",
+                )
+              }
+            />
+            <p className="tavern-set-hint">
+              Notify me when an arena agent opens or closes a paper trade.
+              Includes the asset, direction, entry/result, and a link to the
+              live arena. The public market feed is read-only; UPDATED never
+              sends orders or exchange credentials.
+            </p>
             <SectionLabel>History</SectionLabel>
             <NotificationsHistory {...(onOpenThread ? { onOpenThread } : {})} />
           </>

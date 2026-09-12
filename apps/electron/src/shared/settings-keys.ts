@@ -40,6 +40,8 @@ export const SETTINGS_KEYS = {
   textScale: "text_scale",
   /** Reduce motion / animations for accessibility */
   reduceMotion: "reduce_motion",
+  /** Opt-in native alerts when AGICY arena agents open or close a trade. */
+  cryptoTradeNotifications: "crypto_trade_notifications",
   /**
    * Host agent-os tools (Bash/files). Default off — transitional until AGIBOT
    * sandboxes own agency. When on, Bash/Write/Edit still require confirmation.
