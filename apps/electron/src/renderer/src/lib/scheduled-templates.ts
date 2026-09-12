@@ -22,7 +22,7 @@ async function responseJson<T>(response: Response): Promise<T> {
     const error = (payload as { error?: string } | null)?.error;
     throw new Error(
       error === "cloud_auth_required"
-        ? "Sign in to Freestyle first."
+        ? "Sign in with AGICY first."
         : (error ?? "Scheduled tasks are unavailable."),
     );
   }

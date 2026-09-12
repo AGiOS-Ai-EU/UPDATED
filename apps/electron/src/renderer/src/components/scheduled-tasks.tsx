@@ -122,7 +122,7 @@ function TaskForm({
       {field("Cron (optional, blank = fuzzy)", "cron", "0 8 * * 1-5")}
       {field("Timezone", "timezone", "America/Los_Angeles")}
       <label className="tavern-sched-field">
-        <span className="tavern-sched-label">What Freestyle does</span>
+        <span className="tavern-sched-label">What UPDATED does</span>
         <textarea
           className="tavern-editor"
           value={draft.instruction}
@@ -154,7 +154,7 @@ function TaskForm({
 }
 
 export function ScheduledTasks({
-  mascot = "Freestyle",
+  mascot = "UPDATED",
   onOpenChange,
   onOpenThread,
 }: {

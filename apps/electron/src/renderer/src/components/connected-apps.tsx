@@ -139,7 +139,7 @@ function connectionCopy(
     return `${connection.accountLabel ?? "Connected"} · ${connection.toolCount} ${connection.toolCount === 1 ? "tool" : "tools"}`;
   if (connection?.status === "needs_reconnect")
     return "Reconnect to keep using this app";
-  return description ?? "Available to Freestyle";
+  return description ?? "Available to UPDATED";
 }
 
 function connectionBadge(

@@ -48,7 +48,7 @@ export function NotificationsHistory({
   if (error?.kind === "unreachable")
     return (
       <div className="tavern-empty">
-        Couldn't reach Freestyle Cloud. Try again in a moment.
+        Couldn't reach AGICY Cloud. Try again in a moment.
       </div>
     );
   const rows = query.data ?? [];
@@ -62,7 +62,7 @@ export function NotificationsHistory({
   return (
     <>
       <p className="tavern-set-hint is-lead">
-        Everything Freestyle has sent you, newest first — including the ones
+        Everything UPDATED has sent you, newest first — including the ones
         you've already cleared.
       </p>
       {rows.map((row) => {

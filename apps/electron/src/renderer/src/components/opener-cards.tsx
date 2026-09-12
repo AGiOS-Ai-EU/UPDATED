@@ -347,7 +347,7 @@ export function OpenerCards({
       ) : null}
       {applyTemplate.isError ? (
         <p className="tavern-connect-error" role="alert">
-          Couldn't set that up. Try again, or ask Freestyle in chat.
+          Couldn't set that up. Try again, or ask UPDATED in chat.
         </p>
       ) : null}
       {onShowAll ? (

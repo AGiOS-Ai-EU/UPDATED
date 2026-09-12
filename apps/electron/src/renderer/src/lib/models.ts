@@ -11,7 +11,7 @@ export const FREESTYLE_CLOUD_PROVIDER_ID = "freestyle-cloud";
 export const FREESTYLE_CLOUD_MODEL_ID = "freestyle-cloud/stt";
 
 const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
-  "freestyle-cloud": "Freestyle Transcribe",
+  "freestyle-cloud": "AGICY Voice",
 };
 
 export function displayProviderName(

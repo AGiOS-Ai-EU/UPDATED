@@ -207,7 +207,7 @@ export function NotesTab(): React.JSX.Element {
     <>
       {notes.length === 0 ? (
         <div className="tavern-empty">
-          No notes yet — write one, or ask Freestyle to take one.
+          No notes yet — write one, or ask UPDATED to take one.
         </div>
       ) : null}
       {notes.map((n) => (

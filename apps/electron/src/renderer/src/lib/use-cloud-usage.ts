@@ -203,7 +203,7 @@ export function useCloudUsage(signedIn: boolean): UseCloudUsageResult {
         if (!res.ok) {
           throw new Error(
             res.status === 401
-              ? "Sign in to Freestyle Cloud first"
+              ? "Sign in with AGICY first"
               : `Could not start checkout (${res.status})`,
           );
         }

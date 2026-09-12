@@ -95,7 +95,7 @@ export function Capabilities({
   return (
     <>
       <p className="tavern-set-hint is-lead">
-        Everything Freestyle can do for you. Tap one to run it.
+        Everything UPDATED can do for you. Tap one to run it.
       </p>
       {groups.map((group) => (
         <div key={group.id} className="tavern-cap-group">

@@ -108,7 +108,7 @@ export function TodosTab({ mascot }: { mascot: string }): React.JSX.Element {
     <>
       {items.length === 0 ? (
         <div className="tavern-empty">
-          Nothing to do — add one below, or ask Freestyle to remember one.
+          Nothing to do — add one below, or ask UPDATED to remember one.
         </div>
       ) : null}
       {items.map((item) => (

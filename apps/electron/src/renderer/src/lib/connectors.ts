@@ -110,7 +110,7 @@ async function responseJson<T>(response: Response): Promise<T> {
     const error = (payload as { error?: string } | null)?.error;
     const friendlyError =
       error === "cloud_auth_required"
-        ? "Sign in to Freestyle before connecting an app."
+        ? "Sign in with AGICY before connecting an app."
         : error === "connected_apps_unavailable"
           ? "Connected apps are temporarily unavailable. Please try again."
           : error;
