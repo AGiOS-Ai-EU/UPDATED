@@ -3,6 +3,7 @@ import { createSearchProviders, runMultiProviderSearch } from "@updated/search";
 import { Hono } from "hono";
 import { z } from "zod";
 import { getDb } from "../lib/db.js";
+import { appendEgressLedgerEvent } from "../lib/egress-ledger.js";
 import {
   appendDivergenceLog,
   buildDivergenceLogEvent,
@@ -58,6 +59,18 @@ const search = new Hono().post(
         divergence: outcome.divergence,
       });
       appendDivergenceLog(logEvent);
+      for (const result of outcome.results) {
+        appendEgressLedgerEvent({
+          category: "search",
+          destination: result.providerId,
+          method: "POST",
+          status: 200,
+          requestBytes: query.length,
+          responseBytes: null,
+          authorization: headerKey ? "user-api-key" : "public",
+          surface: "web-search",
+        });
+      }
 
       return c.json({
         ok: true as const,

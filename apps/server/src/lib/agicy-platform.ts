@@ -2,6 +2,7 @@ export const DEFAULT_AGICY_PLATFORM_URL = "https://agicy.ai";
 export const AGICY_HOSTED_PROVIDER_ID = "agicy-hosted";
 export const AGICY_HOSTED_TRANSCRIBE_MODEL_ID = "agicy-hosted/stt";
 const DEVICE_PAGE_PATH = "/updated/my_device";
+import { appendEgressLedgerEvent } from "./egress-ledger.js";
 
 export function isVercelProtectedHost(hostname: string): boolean {
   const host = hostname.toLowerCase();
@@ -103,9 +104,20 @@ export function agicyPlatformUrl(): string {
 }
 
 export async function requestAgicyDeviceCode(): Promise<AgicyDeviceCodeResult> {
-  const res = await fetch(`${agicyPlatformUrl()}/api/updated/device/code`, {
+  const destination = `${agicyPlatformUrl()}/api/updated/device/code`;
+  const res = await fetch(destination, {
     method: "POST",
     signal: AbortSignal.timeout(15_000),
+  });
+  appendEgressLedgerEvent({
+    category: "auth",
+    destination,
+    method: "POST",
+    status: res.status,
+    requestBytes: 0,
+    responseBytes: Number(res.headers?.get?.("content-length")) || null,
+    authorization: "public",
+    surface: "device-sign-in",
   });
   if (!res.ok) {
     throw new Error(`Could not start AGICY sign-in (${res.status})`);
@@ -134,11 +146,23 @@ export async function requestAgicyDeviceCode(): Promise<AgicyDeviceCodeResult> {
 export async function pollAgicyDeviceToken(
   deviceCode: string,
 ): Promise<AgicyDeviceTokenResult> {
-  const res = await fetch(`${agicyPlatformUrl()}/api/updated/device/token`, {
+  const destination = `${agicyPlatformUrl()}/api/updated/device/token`;
+  const requestBytes = JSON.stringify({ device_code: deviceCode }).length;
+  const res = await fetch(destination, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ device_code: deviceCode }),
     signal: AbortSignal.timeout(15_000),
+  });
+  appendEgressLedgerEvent({
+    category: "auth",
+    destination,
+    method: "POST",
+    status: res.status,
+    requestBytes,
+    responseBytes: Number(res.headers?.get?.("content-length")) || null,
+    authorization: "public",
+    surface: "device-sign-in",
   });
 
   if (res.status === 202) {
@@ -186,11 +210,22 @@ export async function transcribeWithAgicyHosted(opts: {
   if (opts.language) form.append("language", opts.language);
   form.append("surface", "stt");
 
-  const res = await fetch(`${agicyPlatformUrl()}/api/stt/transcribe`, {
+  const destination = `${agicyPlatformUrl()}/api/stt/transcribe`;
+  const res = await fetch(destination, {
     method: "POST",
     headers: { authorization: `Bearer ${opts.token}` },
     body: form,
     signal: AbortSignal.timeout(60_000),
+  });
+  appendEgressLedgerEvent({
+    category: "voice",
+    destination,
+    method: "POST",
+    status: res.status,
+    requestBytes: opts.audio.byteLength,
+    responseBytes: Number(res.headers?.get?.("content-length")) || null,
+    authorization: "account-session",
+    surface: "hosted-transcription",
   });
 
   if (res.status === 401 || res.status === 403) {

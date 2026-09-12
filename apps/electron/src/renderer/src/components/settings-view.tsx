@@ -1083,6 +1083,18 @@ function SearchPage({
   const [keyMessage, setKeyMessage] = useState<string | null>(null);
   const [logPath, setLogPath] = useState<string>("");
   const [logMessage, setLogMessage] = useState<string | null>(null);
+  const [egressPath, setEgressPath] = useState<string>("");
+  const [egressEvents, setEgressEvents] = useState<
+    Array<{
+      timestamp: string;
+      category: string;
+      destination: string;
+      status: number | null;
+      requestBytes: number | null;
+      authorization: string;
+      surface: string;
+    }>
+  >([]);
 
   const refreshKeyStatus = useCallback((): void => {
     void window.api
@@ -1096,13 +1108,33 @@ function SearchPage({
       .catch(() => setKeyStatus(null));
   }, []);
 
+  const refreshEgress = useCallback((): void => {
+    void apiFetch("/api/transparency/egress?limit=12")
+      .then(async (response) => {
+        if (!response.ok) throw new Error("ledger-unavailable");
+        return (await response.json()) as {
+          path?: string;
+          events?: typeof egressEvents;
+        };
+      })
+      .then((payload) => {
+        setEgressPath(payload.path ?? "");
+        setEgressEvents(payload.events ?? []);
+      })
+      .catch(() => {
+        setEgressPath("");
+        setEgressEvents([]);
+      });
+  }, []);
+
   useEffect(() => {
     refreshKeyStatus();
     void window.api
       .getDivergenceLogPath()
       .then(setLogPath)
       .catch(() => setLogPath(""));
-  }, [refreshKeyStatus]);
+    refreshEgress();
+  }, [refreshEgress, refreshKeyStatus]);
 
   const setInputMode = (mode: InputMode): void => {
     setSetting(SETTINGS_KEYS.inputMode, mode);
@@ -1252,6 +1284,35 @@ function SearchPage({
         <p className="tavern-set-hint tavern-mono">{logPath}</p>
       ) : null}
       {logMessage ? <p className="tavern-set-hint">{logMessage}</p> : null}
+
+      <SectionLabel>Transparency ledger</SectionLabel>
+      <p className="tavern-set-hint">
+        UPDATED records destination, category, size, status, and authorization
+        for outbound requests. It never stores audio, transcripts, API keys, or
+        search text.
+      </p>
+      <ActionRow
+        label="Refresh egress activity"
+        action="Refresh"
+        onClick={refreshEgress}
+      />
+      {egressEvents.length === 0 ? (
+        <p className="tavern-set-hint">No outbound activity recorded yet.</p>
+      ) : (
+        <div className="tavern-set-ledger" role="list" aria-label="Recent outbound activity">
+          {egressEvents.map((event, index) => (
+            <div className="tavern-set-ledger-row" role="listitem" key={`${event.timestamp}-${index}`}>
+              <span>
+                {event.category} · {event.surface}
+              </span>
+              <span>
+                {event.destination} · {event.status ?? "—"} · {event.requestBytes ?? 0} B
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      {egressPath ? <p className="tavern-set-hint tavern-mono">{egressPath}</p> : null}
     </>
   );
 }

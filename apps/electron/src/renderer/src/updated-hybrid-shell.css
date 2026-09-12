@@ -310,6 +310,36 @@
   background: color-mix(in srgb, var(--updated-copper) 14%, var(--updated-field));
 }
 
+.updated-hybrid-shell .tavern-set-ledger {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0;
+  padding: 8px;
+  border: 1px solid var(--updated-rule);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--updated-field) 74%, transparent);
+  font-family: var(--updated-font-mono);
+  font-size: 10px;
+}
+
+.updated-hybrid-shell .tavern-set-ledger-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--updated-rule) 70%, transparent);
+  color: var(--updated-graphite);
+}
+
+.updated-hybrid-shell .tavern-set-ledger-row:last-child {
+  border-bottom: 0;
+}
+
+.updated-hybrid-shell .tavern-set-ledger-row span:last-child {
+  color: var(--updated-ink);
+  text-align: right;
+}
+
 .updated-hybrid-shell .tavern-composer-tool-music span:first-child {
   color: var(--updated-copper);
   font-size: 16px;

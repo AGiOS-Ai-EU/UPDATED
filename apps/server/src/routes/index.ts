@@ -38,6 +38,7 @@ import settings from "./settings.js";
 import streamRoute from "./stream.js";
 import suggestionsRoute from "./suggestions.js";
 import transcribe, { transcribePreWarmRoute } from "./transcribe.js";
+import transparency from "./transparency.js";
 import usage from "./usage.js";
 import vocabulary from "./vocabulary.js";
 
@@ -97,6 +98,7 @@ const apiRouter = new Hono()
   .route("/models", models)
   .route("/transcribe", transcribe)
   .route("/transcribe", transcribePreWarmRoute)
+  .route("/transparency", transparency)
   .route("/history", history)
   .route("/dictionary", dictionary)
   .route("/dismissed-notifications", dismissedNotifications)
